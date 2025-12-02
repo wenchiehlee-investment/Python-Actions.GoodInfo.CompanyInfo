@@ -1,0 +1,6 @@
+group:
+  - files:
+      - source: raw_companyinfo.csv
+        dest:   raw_companyinfo.csv
+    repos: |
+        wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer
