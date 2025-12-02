@@ -15,7 +15,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
     *   Clean and normalize column names.
     *   Filter for valid stock records.
 4.  **Merge:** Join official data with the input list using `代號` (Stock ID) as the key.
-5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`).
+5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`, `主要業務`, `相關概念`, `相關集團`).
 
 ## 3. Script Logic (`FetchCompanyInfo.py`)
 
@@ -45,6 +45,8 @@ The script fetches data from `https://isin.twse.com.tw/isin/C_public.jsp?strMode
     *   Perform Left Joins from the Input CSV against all 4 dataframes.
     *   **Coalesce Logic:** `市場別 = TWSE.fillna(TPEX).fillna(Emerging).fillna(Public)`
     *   This ensures that if a stock moves markets, the most "senior" market status is preferred (though IDs are usually unique).
+*   **GoodInfo Data (主要業務, 相關概念, 相關集團):** These columns are requested but cannot be reliably scraped.
+    *   *Action:* Columns `主要業務`, `相關概念`, `相關集團` are added to the DataFrame but are initialized with `None` (empty) values. This is due to the strong anti-scraping measures employed by GoodInfo (JavaScript challenges) which prevent automated data extraction using simple `requests` in this environment.
 
 ### 3.4. Public Company (Mode 1) Handling
 Mode 1 tables lack the standard `市場別` column found in Modes 2/4/5.
@@ -99,5 +101,6 @@ jobs:
 ```
 
 ## 5. Future Improvements
+*   **GoodInfo Data Extraction:** If "主要業務", "相關概念", and "相關集團" are critical, a more advanced solution involving headless browser automation (e.g., Selenium, Playwright) would be required to bypass GoodInfo's anti-scraping measures. This would significantly increase the complexity and resource requirements of the workflow.
 *   **Anti-Scraping:** If TWSE adds stricter blocking, consider adding retry logic with exponential backoff or rotating User-Agents (though currently `verify=False` + standard headers works).
 *   **GoodInfo Integration:** If "Main Business" text is strictly required, integrate a headless browser (e.g., Selenium/Playwright) solution, though this significantly increases runtime overhead.

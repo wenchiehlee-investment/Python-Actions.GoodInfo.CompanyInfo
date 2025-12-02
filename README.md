@@ -49,6 +49,12 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `名稱` | Company Name (e.g., `台積電`) | `台積電` |
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | `上市` |
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
+| `主要業務` | **Main Business** (Currently empty due to scraping limitations) | |
+| `相關概念` | **Related Concepts** (Currently empty due to scraping limitations) | |
+| `相關集團` | **Related Group** (Currently empty due to scraping limitations) | |
+
+## Limitations
+Due to the strong anti-scraping protection employed by websites like GoodInfo (e.g., JavaScript challenges, browser checks), it is not feasible to automatically extract "主要業務" (Main Business), "相關概念" (Related Concepts), and "相關集團" using simple HTTP requests in this environment. These columns are included in the output CSV but will remain empty. Manual data entry or a more complex, browser-automation-based solution (which is beyond the scope of this script's design) would be required to populate them.
 
 ## Technical Notes
 
