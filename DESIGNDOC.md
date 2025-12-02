@@ -54,8 +54,11 @@ Data fetched from `https://www.moneydj.com/ETF/X/Basic/Basic0007B.xdjhtm?etfid={
     *   Perform Left Joins from the Input CSV against all 4 dataframes.
     *   **Coalesce Logic:** `市場別 = TWSE.fillna(TPEX).fillna(Emerging).fillna(Public)`
     *   This ensures that if a stock moves markets, the most "senior" market status is preferred (though IDs are usually unique).
-*   **GoodInfo Data (主要業務, 相關概念, 相關集團):** These columns are requested but cannot be reliably scraped.
-    *   *Action:* Columns `主要業務`, `相關概念`, `相關集團` are added to the DataFrame but are initialized with `None` (empty) values. This is due to the strong anti-scraping measures employed by GoodInfo (JavaScript challenges) which prevent automated data extraction using simple `requests` in this environment.
+*   **GoodInfo Data (主要業務, 相關概念, 相關集團):**
+    *   **Tool:** Selenium with Headless Chrome.
+    *   **Logic:** Opens `https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={id}`, waits for JS initialization, and extracts fields from the rendered HTML using regex.
+    *   **Fields:** "主要業務" (Main Business), "相關概念" (Related Concepts), "相關集團" (Group).
+    *   **Fallback:** If Selenium fails or dependencies are missing, columns remain `None`.
 
 ### 3.4. Public Company (Mode 1) Handling
 Mode 1 tables lack the standard `市場別` column found in Modes 2/4/5.
@@ -64,50 +67,13 @@ Mode 1 tables lack the standard `市場別` column found in Modes 2/4/5.
 ## 4. GitHub Actions Automation
 
 To automate the daily/weekly updates of this data, use the following workflow configuration.
+*   **Environment:** `ubuntu-latest`
+*   **Dependencies:** `selenium`, `webdriver-manager`, `google-chrome-stable`.
+*   **Schedule:** Daily.
 
 ### File Path: `.github/workflows/update_company_info.yml`
+(See actual file for full YAML)
 
-```yaml
-name: Update Company Info
-
-on:
-  schedule:
-    # Run every day at 00:00 UTC (08:00 Taipei Time)
-    - cron: '0 0 * * *'
-  workflow_dispatch: # Allow manual trigger
-
-permissions:
-  contents: write
-
-jobs:
-  update-data:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas requests lxml urllib3
-
-      - name: Update Stock Lists (Optional)
-        run: python Get觀察名單.py
-
-      - name: Fetch Official Company Info
-        run: python FetchCompanyInfo.py
-
-      - name: Commit and Push changes
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Auto-update: Company Info & Lists"
-          file_pattern: "*.csv"
-```
 
 ## 5. Future Improvements
 *   **GoodInfo Data Extraction:** If "主要業務", "相關概念", and "相關集團" are critical, a more advanced solution involving headless browser automation (e.g., Selenium, Playwright) would be required to bypass GoodInfo's anti-scraping measures. This would significantly increase the complexity and resource requirements of the workflow.

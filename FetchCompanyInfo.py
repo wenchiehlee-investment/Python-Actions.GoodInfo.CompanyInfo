@@ -2,7 +2,21 @@ import pandas as pd
 import requests
 import urllib3
 import re
+import time
 from io import StringIO
+
+# Try to import Selenium
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.chrome.service import Service
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
 
 # Suppress only the single warning from urllib3 needed.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -20,6 +34,106 @@ HEADERS = {
         "Chrome/120.0.0.0 Safari/537.36"
     )
 }
+
+def get_selenium_driver():
+    if not SELENIUM_AVAILABLE:
+        return None
+    
+    print("Initializing Selenium Driver...")
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    
+    try:
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+        return driver
+    except Exception as e:
+        print(f"Failed to initialize Selenium: {e}")
+        return None
+
+def fetch_goodinfo_data(driver, stock_id):
+    if driver is None:
+        return None, None, None
+
+    url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
+    
+    try:
+        driver.get(url)
+        
+        # Wait for the "Initializing" to pass and content to load
+        # We wait for the presence of "body" first
+        wait = WebDriverWait(driver, 15)
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        
+        # Heuristic: Wait for a table data cell to appear or timeout
+        # This helps ensure dynamic content is rendered
+        try:
+            wait.until(EC.presence_of_element_located((By.TAG_NAME, "td")))
+        except:
+            pass # Proceed anyway, maybe page is weird
+
+        html = driver.page_source
+        
+        # Helper to extract fields
+        def extract(field_name):
+            # Pattern 1: <nobr>Label</nobr> ... (Value)
+            # Pattern 2: >Label</td> ... >(Value)</td>
+            
+            # Case A: Special for Main Business (often in a <p>)
+            if field_name == "主要業務":
+                # <nobr>主要業務</nobr>...<p...>(Value)</p>
+                p_match = re.search(fr"<nobr>{field_name}</nobr>.*?<p[^>]*>(.*?)</p>", html, re.DOTALL | re.IGNORECASE)
+                if p_match:
+                    return re.sub(r'<[^>]+>', '', p_match.group(1)).strip().replace('&nbsp;', ' ')
+            
+            # Case B: Standard Table Cell
+            # Match >Label</td> ... >Value</td>
+            # Handles <nobr>Label</nobr> inside the first td via loose regex
+            # We look for ">Label<" or ">Label</nobr><"
+            
+            # Simplified: Find the literal text, find the next <td> closure
+            # This is risky but effective for GoodInfo's specific layout
+            # <td ...>相關概念</td><td ...> <a ...>Concept</a> </td>
+            
+            # Robust Regex:
+            # 1. Find cell closing tag </td> that preceeded by Label
+            # 2. Find next cell opening <td...>
+            # 3. Capture until </td>
+            
+            # Let's try a targeted approach for each field
+            pass
+            
+            # Fallback Regexes
+            patterns = [
+                fr"<nobr>{field_name}</nobr>.*?<td[^>]*>(.*?)</td>",
+                fr">{field_name}</td>\s*<td[^>]*>(.*?)</td>",
+                fr">{field_name}</nobr>.*?<td[^>]*>(.*?)</td>"
+            ]
+            
+            for pat in patterns:
+                m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
+                if m:
+                    return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
+            return None
+
+        main_biz = extract("主要業務")
+        concepts = extract("相關概念")
+        group = extract("相關集團")
+        
+        # Backup for Group: sometimes just "集團"
+        if not group:
+            group = extract("集團")
+
+        return main_biz, concepts, group
+
+    except Exception as e:
+        print(f"Error fetching GoodInfo for {stock_id}: {e}")
+        return None, None, None
 
 def fetch_etf_weights(etf_id):
     """
@@ -238,10 +352,34 @@ def main():
         "相關集團",
     ]
 
-    # Add empty columns for data that cannot be reliably scraped
+    # Initialize empty columns
     merged["主要業務"] = None
     merged["相關概念"] = None
     merged["相關集團"] = None
+    
+    # === Fetch GoodInfo Data (Selenium) ===
+    driver = get_selenium_driver()
+    if driver:
+        print("Starting GoodInfo fetch for all stocks...")
+        total = len(merged)
+        
+        for idx, row in merged.iterrows():
+            stock_id = row["代號"]
+            print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
+            
+            mb, cc, gp = fetch_goodinfo_data(driver, stock_id)
+            
+            # Update DataFrame directly
+            merged.at[idx, "主要業務"] = mb
+            merged.at[idx, "相關概念"] = cc
+            merged.at[idx, "相關集團"] = gp
+            
+            # Small delay to be polite/avoid blocked
+            time.sleep(2)
+        
+        driver.quit()
+    else:
+        print("Skipping GoodInfo fetch (Selenium not available).")
 
     for c in merged.columns:
         if c not in col_order and c not in [

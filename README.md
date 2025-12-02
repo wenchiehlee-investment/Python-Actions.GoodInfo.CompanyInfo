@@ -51,12 +51,17 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
-| `主要業務` | **Main Business** (Currently empty due to scraping limitations) | |
-| `相關概念` | **Related Concepts** (Currently empty due to scraping limitations) | |
-| `相關集團` | **Related Group** (Currently empty due to scraping limitations) | |
+| `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
+| `相關概念` | **Related Concepts** (Scraped from GoodInfo) | `Apple概念股...` |
+| `相關集團` | **Related Group** (Scraped from GoodInfo) | `台積電集團` |
 
-## Limitations
-Due to the strong anti-scraping protection employed by websites like GoodInfo (e.g., JavaScript challenges, browser checks), it is not feasible to automatically extract "主要業務" (Main Business), "相關概念" (Related Concepts), and "相關集團" using simple HTTP requests in this environment. These columns are included in the output CSV but will remain empty. Manual data entry or a more complex, browser-automation-based solution (which is beyond the scope of this script's design) would be required to populate them.
+## GoodInfo Scraping
+The script uses **Selenium** with a headless Chrome browser to bypass anti-scraping measures on GoodInfo. This allows it to retrieve:
+*   **Main Business (主要業務)**
+*   **Related Concepts (相關概念)**
+*   **Related Group (相關集團)**
+
+*Note: This process adds significant runtime (approx. 5-10 seconds per stock).*
 
 ## Technical Notes
 
