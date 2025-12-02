@@ -26,6 +26,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas requests lxml urllib3 html5lib
 
+      - name: Fetch Stock Lists
+        run: python "Get觀察名單.py"
+
       - name: Run FetchCompanyInfo
         run: python FetchCompanyInfo.py
 
