@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import urllib3
 from io import StringIO
+from GetETFWeights import fetch_etf_weights
 
 # Suppress only the single warning from urllib3 needed.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -141,7 +142,14 @@ def main():
         ]
     ]
 
-    # 3) 合併
+    # 3) 抓取 ETF 成分股權重 (0050, 0056)
+    print("下載 ETF 0050 成分股權重...")
+    weights_0050 = fetch_etf_weights("0050")
+    
+    print("下載 ETF 0056 成分股權重...")
+    weights_0056 = fetch_etf_weights("0056")
+
+    # 4) 合併
     merged = base.merge(twse, on="代號", how="left")
     merged = merged.merge(tpex, on="代號", how="left")
     merged = merged.merge(emg, on="代號", how="left")
@@ -162,12 +170,18 @@ def main():
         .fillna(merged["產業別_PUB"])
     )
 
-    # 4) 欄位順序
+    # === Mapping ETF Weights ===
+    merged["ETF_0050"] = merged["代號"].map(weights_0050)
+    merged["ETF_0056"] = merged["代號"].map(weights_0056)
+
+    # 5) 欄位順序
     col_order = [
         "代號",
         "名稱",
         "市場別",
         "產業別",          # This serves as '相關產業'
+        "ETF_0050",
+        "ETF_0056",
         "主要業務",
         "相關概念",
         "相關集團",
@@ -191,7 +205,7 @@ def main():
 
     merged = merged[col_order]
 
-    # 5) 存檔
+    # 6) 存檔
     merged.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
 
     print("\n=== 已完成 ===")

@@ -15,7 +15,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
     *   Clean and normalize column names.
     *   Filter for valid stock records.
 4.  **Merge:** Join official data with the input list using `代號` (Stock ID) as the key.
-5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`, `主要業務`, `相關概念`, `相關集團`).
+5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`, `ETF_0050`, `ETF_0056`, `主要業務`, `相關概念`, `相關集團`).
 
 ## 3. Script Logic (`FetchCompanyInfo.py`)
 
@@ -24,9 +24,12 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 *   `pandas`: Data manipulation and HTML table parsing.
 *   `urllib3`: Used to suppress SSL warnings.
 *   `io.StringIO`: To wrap HTML text for Pandas reading.
+*   `GetETFWeights.py`: Helper module to fetch ETF composition.
 
-### 3.2. Data Sources (TWSE ISIN)
-The script fetches data from `https://isin.twse.com.tw/isin/C_public.jsp?strMode={mode}`.
+### 3.2. Data Sources
+
+#### TWSE ISIN (Market & Industry)
+Data fetched from `https://isin.twse.com.tw/isin/C_public.jsp?strMode={mode}`.
 
 | Mode | Market Type | Description | Note |
 | :--- | :--- | :--- | :--- |
@@ -34,6 +37,12 @@ The script fetches data from `https://isin.twse.com.tw/isin/C_public.jsp?strMode
 | **4** | TPEX (上櫃) | OTC Market | Standard handling. |
 | **5** | Emerging (興櫃) | Emerging Stock | Needed for stocks like `6035`. |
 | **1** | Public (公開發行) | Public Companies | Needed for stocks like `6699`. Unique column structure. |
+
+#### MoneyDJ (ETF Weights)
+Data fetched from `https://www.moneydj.com/ETF/X/Basic/Basic0007B.xdjhtm?etfid={id}.TW`.
+*   **0050:** Yuanta Taiwan 50
+*   **0056:** Yuanta Taiwan High Dividend Yield
+*   *Note:* We use `Basic0007B` which provides the full list of constituents (e.g., Top 50) rather than the summary page.
 
 ### 3.3. Implementation Details
 *   **SSL/TLS:** The TWSE server often has certificate issues.
