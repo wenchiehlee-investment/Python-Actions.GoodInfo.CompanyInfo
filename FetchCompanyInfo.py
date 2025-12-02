@@ -222,8 +222,8 @@ def main():
     )
 
     # === Mapping ETF Weights ===
-    merged["ETF_0050"] = merged["代號"].map(weights_0050)
-    merged["ETF_0056"] = merged["代號"].map(weights_0056)
+    merged["ETF_0050_權重"] = merged["代號"].map(weights_0050)
+    merged["ETF_0056_權重"] = merged["代號"].map(weights_0056)
 
     # 5) 欄位順序
     col_order = [
@@ -231,8 +231,8 @@ def main():
         "名稱",
         "市場別",
         "產業別",          # This serves as '相關產業'
-        "ETF_0050",
-        "ETF_0056",
+        "ETF_0050_權重",
+        "ETF_0056_權重",
         "主要業務",
         "相關概念",
         "相關集團",

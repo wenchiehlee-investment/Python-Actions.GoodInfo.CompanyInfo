@@ -49,8 +49,8 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `名稱` | Company Name (e.g., `台積電`) | `台積電` |
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | `上市` |
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
-| `ETF_0050` | Weight in ETF 0050 (%) | `47.5` |
-| `ETF_0056` | Weight in ETF 0056 (%) | `2.5` |
+| `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
+| `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
 | `主要業務` | **Main Business** (Currently empty due to scraping limitations) | |
 | `相關概念` | **Related Concepts** (Currently empty due to scraping limitations) | |
 | `相關集團` | **Related Group** (Currently empty due to scraping limitations) | |

@@ -15,7 +15,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
     *   Clean and normalize column names.
     *   Filter for valid stock records.
 4.  **Merge:** Join official data with the input list using `代號` (Stock ID) as the key.
-5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`, `ETF_0050`, `ETF_0056`, `主要業務`, `相關概念`, `相關集團`).
+5.  **Output:** `raw_companyinfo.csv` (Columns: `代號`, `名稱`, `市場別`, `產業別`, `ETF_0050_權重`, `ETF_0056_權重`, `主要業務`, `相關概念`, `相關集團`).
 
 ## 3. Script Logic (`FetchCompanyInfo.py`)
 
