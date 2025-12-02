@@ -42,8 +42,8 @@ jobs:
           if [ -n "$(git status --porcelain raw_companyinfo.csv)" ]; then
             echo "Changes detected in raw_companyinfo.csv. Preparing to commit..."
             
-            # 3. Stash the generated file to protect it during the pull
-            git stash push raw_companyinfo.csv -m "Latest raw_companyinfo.csv"
+            # 3. Backup the generated file to /tmp
+            cp raw_companyinfo.csv /tmp/raw_companyinfo.csv
             
             # 4. Pull latest changes (User's Logic)
             echo "Fetching latest changes from remote..."
@@ -59,11 +59,8 @@ jobs:
               git pull origin main || echo "Pull still failed, continuing with commit attempt..."
             fi
             
-            # 5. Restore our generated file (force overwrite from stash)
-            if git stash list | grep -q "Latest raw_companyinfo.csv"; then
-                git checkout stash@{0} -- raw_companyinfo.csv
-                git stash drop stash@{0}
-            fi
+            # 5. Restore our generated file (force overwrite)
+            cp /tmp/raw_companyinfo.csv raw_companyinfo.csv
 
             # 6. Commit and Push
             git add raw_companyinfo.csv
