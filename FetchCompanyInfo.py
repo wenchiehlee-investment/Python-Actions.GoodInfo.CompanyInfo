@@ -51,6 +51,8 @@ def get_selenium_driver():
     try:
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
+        # Set a strict page load timeout (30 seconds) to prevent hanging
+        driver.set_page_load_timeout(30)
         return driver
     except Exception as e:
         print(f"Failed to initialize Selenium: {e}")
@@ -70,7 +72,11 @@ def get_goodinfo_group_map(driver):
     try:
         # 1. Get list of all groups
         url_all_groups = "https://goodinfo.tw/tw/StockList.asp?MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1&SHEET=%E8%82%A1%E7%A5%A8%E6%B8%85%E5%96%AE"
-        driver.get(url_all_groups)
+        try:
+            driver.get(url_all_groups)
+        except Exception as e:
+            print(f"Timeout or error loading Group List page: {e}")
+            return {} # Abort if main list fails
         
         # Wait for links to appear
         WebDriverWait(driver, 15).until(
@@ -89,29 +95,30 @@ def get_goodinfo_group_map(driver):
         print(f"Found {len(group_links)} unique groups. Mapping stocks...")
         
         # 2. Iterate ALL groups
-        # This might take a while (70+ groups), but faster than 1000+ stocks
-        # Optimally, we could parallelize, but let's keep it simple linear for now.
-        
         total_groups = len(group_links)
         for i, (group_name, href) in enumerate(group_links):
             print(f"  [{i+1}/{total_groups}] Mapping Group: {group_name}")
-            driver.get(href)
-            time.sleep(1.5) # Short wait
-            
-            stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
-            
-            for sl in stock_links:
-                shref = sl.get_attribute('href')
-                if "STOCK_ID=" in shref:
-                    try:
-                        sid = shref.split("STOCK_ID=")[1].split("&")[0]
-                        if sid in group_map:
-                            if group_name not in group_map[sid]:
-                                group_map[sid] += f", {group_name}"
-                        else:
-                            group_map[sid] = group_name
-                    except:
-                        pass
+            try:
+                driver.get(href)
+                time.sleep(1.5) # Short wait
+                
+                stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                
+                for sl in stock_links:
+                    shref = sl.get_attribute('href')
+                    if "STOCK_ID=" in shref:
+                        try:
+                            sid = shref.split("STOCK_ID=")[1].split("&")[0]
+                            if sid in group_map:
+                                if group_name not in group_map[sid]:
+                                    group_map[sid] += f", {group_name}"
+                            else:
+                                group_map[sid] = group_name
+                        except:
+                            pass
+            except Exception as e:
+                print(f"  Skipping group {group_name} due to error: {e}")
+                continue
                         
     except Exception as e:
         print(f"Error fetching group map: {e}")
@@ -126,7 +133,11 @@ def fetch_goodinfo_data(driver, stock_id):
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
     
     try:
-        driver.get(url)
+        try:
+            driver.get(url)
+        except Exception as e:
+            print(f"  Timeout/Error loading page for {stock_id}: {e}")
+            return None, None
         
         # Wait for the "Initializing" to pass and content to load
         wait = WebDriverWait(driver, 15)
