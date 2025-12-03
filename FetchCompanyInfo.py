@@ -56,9 +56,72 @@ def get_selenium_driver():
         print(f"Failed to initialize Selenium: {e}")
         return None
 
+def get_goodinfo_group_map(driver):
+    """
+    Fetches the mapping of Stock ID -> Group Name from GoodInfo's Group List page.
+    This is much more efficient than visiting every stock page.
+    """
+    if driver is None:
+        return {}
+        
+    print("Fetching GoodInfo Group Map...")
+    group_map = {}
+    
+    try:
+        # 1. Get list of all groups
+        url_all_groups = "https://goodinfo.tw/tw/StockList.asp?MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1&SHEET=%E8%82%A1%E7%A5%A8%E6%B8%85%E5%96%AE"
+        driver.get(url_all_groups)
+        
+        # Wait for links to appear
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(@href, 'MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1')]"))
+        )
+        
+        links = driver.find_elements(By.XPATH, "//a[contains(@href, 'MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1')]")
+        
+        group_links = set()
+        for link in links:
+            href = link.get_attribute('href')
+            text = link.text.strip()
+            if "INDUSTRY_CAT" in href and text:
+                group_links.add((text, href))
+        
+        print(f"Found {len(group_links)} unique groups. Mapping stocks...")
+        
+        # 2. Iterate ALL groups
+        # This might take a while (70+ groups), but faster than 1000+ stocks
+        # Optimally, we could parallelize, but let's keep it simple linear for now.
+        
+        total_groups = len(group_links)
+        for i, (group_name, href) in enumerate(group_links):
+            print(f"  [{i+1}/{total_groups}] Mapping Group: {group_name}")
+            driver.get(href)
+            time.sleep(1.5) # Short wait
+            
+            stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+            
+            for sl in stock_links:
+                shref = sl.get_attribute('href')
+                if "STOCK_ID=" in shref:
+                    try:
+                        sid = shref.split("STOCK_ID=")[1].split("&")[0]
+                        if sid in group_map:
+                            if group_name not in group_map[sid]:
+                                group_map[sid] += f", {group_name}"
+                        else:
+                            group_map[sid] = group_name
+                    except:
+                        pass
+                        
+    except Exception as e:
+        print(f"Error fetching group map: {e}")
+        
+    print(f"Mapped {len(group_map)} stocks to groups.")
+    return group_map
+
 def fetch_goodinfo_data(driver, stock_id):
     if driver is None:
-        return None, None, None
+        return None, None
 
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
     
@@ -66,24 +129,17 @@ def fetch_goodinfo_data(driver, stock_id):
         driver.get(url)
         
         # Wait for the "Initializing" to pass and content to load
-        # We wait for the presence of "body" first
         wait = WebDriverWait(driver, 15)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
         
-        # Heuristic: Wait for a table data cell to appear or timeout
-        # This helps ensure dynamic content is rendered
         try:
             wait.until(EC.presence_of_element_located((By.TAG_NAME, "td")))
         except:
-            pass # Proceed anyway, maybe page is weird
+            pass 
 
         html = driver.page_source
         
-        # Helper to extract fields
         def extract(field_name):
-            # Pattern 1: <nobr>Label</nobr> ... (Value)
-            # Pattern 2: >Label</td> ... >(Value)</td>
-            
             # Case A: Special for Main Business (often in a <p>)
             if field_name == "主要業務":
                 # <nobr>主要業務</nobr>...<p...>(Value)</p>
@@ -91,24 +147,7 @@ def fetch_goodinfo_data(driver, stock_id):
                 if p_match:
                     return re.sub(r'<[^>]+>', '', p_match.group(1)).strip().replace('&nbsp;', ' ')
             
-            # Case B: Standard Table Cell
-            # Match >Label</td> ... >Value</td>
-            # Handles <nobr>Label</nobr> inside the first td via loose regex
-            # We look for ">Label<" or ">Label</nobr><"
-            
-            # Simplified: Find the literal text, find the next <td> closure
-            # This is risky but effective for GoodInfo's specific layout
-            # <td ...>相關概念</td><td ...> <a ...>Concept</a> </td>
-            
-            # Robust Regex:
-            # 1. Find cell closing tag </td> that preceeded by Label
-            # 2. Find next cell opening <td...>
-            # 3. Capture until </td>
-            
-            # Let's try a targeted approach for each field
-            pass
-            
-            # Fallback Regexes
+            # General fallback
             patterns = [
                 fr"<nobr>{field_name}</nobr>.*?<td[^>]*>(.*?)</td>",
                 fr">{field_name}</td>\s*<td[^>]*>(.*?)</td>",
@@ -123,17 +162,14 @@ def fetch_goodinfo_data(driver, stock_id):
 
         main_biz = extract("主要業務")
         concepts = extract("相關概念")
-        group = extract("相關集團")
         
-        # Backup for Group: sometimes just "集團"
-        if not group:
-            group = extract("集團")
+        # Group is now handled globally, removed from here
 
-        return main_biz, concepts, group
+        return main_biz, concepts
 
     except Exception as e:
         print(f"Error fetching GoodInfo for {stock_id}: {e}")
-        return None, None, None
+        return None, None
 
 def fetch_etf_weights(etf_id):
     """
@@ -360,14 +396,23 @@ def main():
     # === Fetch GoodInfo Data (Selenium) ===
     driver = get_selenium_driver()
     if driver:
-        print("Starting GoodInfo fetch for all stocks...")
+        # 1. Fetch Group Map (Bulk)
+        print("Step 1: Fetching Group Map...")
+        group_map = get_goodinfo_group_map(driver)
+        
+        # 2. Fetch Individual Stock Details
+        print("Step 2: Fetching Stock Details...")
         total = len(merged)
         
         for idx, row in merged.iterrows():
             stock_id = row["代號"]
             print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
             
-            mb, cc, gp = fetch_goodinfo_data(driver, stock_id)
+            # Fetch Business & Concepts
+            mb, cc = fetch_goodinfo_data(driver, stock_id)
+            
+            # Get Group from Map
+            gp = group_map.get(str(stock_id))
             
             # Update DataFrame directly
             merged.at[idx, "主要業務"] = mb
