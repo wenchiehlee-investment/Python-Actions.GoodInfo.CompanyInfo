@@ -102,7 +102,9 @@ def get_goodinfo_group_map(driver):
                 driver.get(href)
                 time.sleep(1.5) # Short wait
                 
-                stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                # Restrict search to the main stock list table to avoid sidebar links (e.g. Recently Viewed)
+                # Table ID is usually 'tblStockList'
+                stock_links = driver.find_elements(By.XPATH, "//table[@id='tblStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
                 
                 for sl in stock_links:
                     shref = sl.get_attribute('href')
