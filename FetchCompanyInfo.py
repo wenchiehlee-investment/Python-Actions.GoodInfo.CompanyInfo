@@ -747,7 +747,7 @@ def main():
         print("Step 2: Fetching Stock Details...")
         total = len(merged)
         
-        for idx, row in merged.head(3).iterrows(): # Process only first 3 for quick test
+        for idx, row in merged.iterrows():
             stock_id = row["代號"]
             print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
             
@@ -771,8 +771,7 @@ def main():
 
     # === Fetch Gemini Concepts ===
     # Prepare list [(id, name)]
-    # Process only first 3 stocks for quick test
-    stock_list_for_gemini = list(zip(merged["代號"].head(3), merged["名稱"].head(3)))
+    stock_list_for_gemini = list(zip(merged["代號"], merged["名稱"]))
     gemini_results = fetch_gemini_concepts(stock_list_for_gemini)
     
     if gemini_results:
