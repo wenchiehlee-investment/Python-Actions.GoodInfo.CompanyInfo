@@ -37,9 +37,159 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 INPUT_CSV = "StockID_TWSE_TPEX.csv"
 OUTPUT_CSV = "raw_companyinfo.csv"
 BASE_URL = "https://isin.twse.com.tw/isin/C_public.jsp?strMode={mode}"
-HEADERS = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    )
+}
 
-# ... [Existing Selenium functions: get_selenium_driver, get_goodinfo_group_map, fetch_goodinfo_data] ...
+def get_selenium_driver():
+    if not SELENIUM_AVAILABLE:
+        return None
+    
+    print("Initializing Selenium Driver...")
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    
+    try:
+        service = Service(ChromeDriverManager().install())
+        driver = webdriver.Chrome(service=service, options=options)
+        # Set a strict page load timeout (30 seconds) to prevent hanging
+        driver.set_page_load_timeout(30)
+        return driver
+    except Exception as e:
+        print(f"Failed to initialize Selenium: {e}")
+        return None
+
+def get_goodinfo_group_map(driver):
+    """
+    Fetches the mapping of Stock ID -> Group Name from GoodInfo's Group List page.
+    This is much more efficient than visiting every stock page.
+    """
+    if driver is None:
+        return {}
+        
+    print("Fetching GoodInfo Group Map...")
+    group_map = {}
+    
+    try:
+        # 1. Get list of all groups
+        url_all_groups = "https://goodinfo.tw/tw/StockList.asp?MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1&SHEET=%E8%82%A1%E7%A5%A8%E6%B8%85%E5%96%AE"
+        try:
+            driver.get(url_all_groups)
+        except Exception as e:
+            print(f"Timeout or error loading Group List page: {e}")
+            return {} # Abort if main list fails
+        
+        # Wait for links to appear
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//a[contains(@href, 'MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1')]"))
+        )
+        
+        links = driver.find_elements(By.XPATH, "//a[contains(@href, 'MARKET_CAT=%E9%9B%86%E5%9C%98%E8%82%A1')]")
+        
+        group_links = set()
+        for link in links:
+            href = link.get_attribute('href')
+            text = link.text.strip()
+            if "INDUSTRY_CAT" in href and text:
+                group_links.add((text, href))
+        
+        print(f"Found {len(group_links)} unique groups. Mapping stocks...")
+        
+        # 2. Iterate ALL groups
+        total_groups = len(group_links)
+        for i, (group_name, href) in enumerate(group_links):
+            print(f"  [{i+1}/{total_groups}] Mapping Group: {group_name}")
+            try:
+                driver.get(href)
+                time.sleep(1.5) # Short wait
+                
+                # Restrict search to the main stock list table to avoid sidebar links
+                stock_links = driver.find_elements(By.XPATH, "//table[@id='tblStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                
+                for sl in stock_links:
+                    shref = sl.get_attribute('href')
+                    if "STOCK_ID=" in shref:
+                        try:
+                            sid = shref.split("STOCK_ID=")[1].split("&")[0]
+                            if sid in group_map:
+                                if group_name not in group_map[sid]:
+                                    group_map[sid] += f", {group_name}"
+                            else:
+                                group_map[sid] = group_name
+                        except:
+                            pass
+            except Exception as e:
+                print(f"  Skipping group {group_name} due to error: {e}")
+                continue
+                        
+    except Exception as e:
+        print(f"Error fetching group map: {e}")
+        
+    print(f"Mapped {len(group_map)} stocks to groups.")
+    return group_map
+
+def fetch_goodinfo_data(driver, stock_id):
+    if driver is None:
+        return None, None
+
+    url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
+    
+    try:
+        try:
+            driver.get(url)
+        except Exception as e:
+            print(f"  Timeout/Error loading page for {stock_id}: {e}")
+            return None, None
+        
+        # Wait for the "Initializing" to pass and content to load
+        wait = WebDriverWait(driver, 15)
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        
+        try:
+            wait.until(EC.presence_of_element_located((By.TAG_NAME, "td")))
+        except:
+            pass 
+
+        html = driver.page_source
+        
+        def extract(field_name):
+            # Case A: Special for Main Business (often in a <p>)
+            if field_name == "主要業務":
+                # <nobr>主要業務</nobr>...<p...>(Value)</p>
+                p_match = re.search(fr"<nobr>{field_name}</nobr>.*?<p[^>]*>(.*?)</p>", html, re.DOTALL | re.IGNORECASE)
+                if p_match:
+                    return re.sub(r'<[^>]+>', '', p_match.group(1)).strip().replace('&nbsp;', ' ')
+            
+            # General fallback
+            patterns = [
+                fr"<nobr>{field_name}</nobr>.*?<td[^>]*>(.*?)</td>",
+                fr">{field_name}</td>\s*<td[^>]*>(.*?)</td>",
+                fr">{field_name}</nobr>.*?<td[^>]*>(.*?)</td>"
+            ]
+            
+            for pat in patterns:
+                m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
+                if m:
+                    return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
+            return None
+
+        main_biz = extract("主要業務")
+        concepts = extract("相關概念")
+        
+        return main_biz, concepts
+
+    except Exception as e:
+        print(f"Error fetching GoodInfo for {stock_id}: {e}")
+        return None, None
 
 def fetch_gemini_concepts(stock_list):
     """
@@ -632,9 +782,10 @@ def main():
                 
                 # Append or Set
                 if pd.isna(existing) or existing is None or str(existing).strip() == "":
-                    merged.at[idx, "相關概念"] = f"(Gemini: {concepts})"
+                    merged.at[idx, "相關概念"] = concepts
                 else:
-                    merged.at[idx, "相關概念"] = f"{existing} | (Gemini: {concepts})"
+                    # Avoid duplicates if possible, but simple append for now
+                    merged.at[idx, "相關概念"] = f"{existing} | {concepts}"
 
     for c in merged.columns:
         if c not in col_order and c not in [
