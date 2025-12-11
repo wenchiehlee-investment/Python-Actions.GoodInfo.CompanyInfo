@@ -421,34 +421,33 @@ def fetch_gemini_concepts(stock_list):
                         5. Do not output markdown code blocks.
                         
                         Stocks:
-                        {stock_text}
-                        """
-                        
-                            try:
-                                response = client.models.generate_content(
-                                    model="gemini-2.5-flash",
-                                    contents=prompt
-                                )
-                                
-                                # Parse CSV response
-                                text = response.text
-                                if text.startswith("```"): # Cleanup markdown
-                                    text = text.strip("`").replace("csv\n", "", 1)
+                                    {stock_text}
+                                    """
                                     
-                                lines = text.strip().split('\n')
-                                for line in lines:
-                                    parts = line.split(',', 1)
-                                    if len(parts) == 2:
-                                        sid = parts[0].strip()
-                                        # Replace any remaining commas with semicolons just in case model ignores instruction
-                                        concepts = parts[1].strip().replace(',', ';')
+                                    try:
+                                        response = client.models.generate_content(
+                                            model="gemini-2.5-flash",
+                                            contents=prompt
+                                        )
                                         
-                                        # Basic validation
-                                        if concepts.lower() != "none" and sid.isdigit():
-                                            results[sid] = concepts
-                                
-                                time.sleep(2) # Rate limit nice-ness
-                                
+                                        # Parse CSV response
+                                        text = response.text
+                                        if text.startswith("```"): # Cleanup markdown
+                                            text = text.strip("`").replace("csv\n", "", 1)
+                                            
+                                        lines = text.strip().split('\n')
+                                        for line in lines:
+                                            parts = line.split(',', 1)
+                                            if len(parts) == 2:
+                                                sid = parts[0].strip()
+                                                # Replace any remaining commas with semicolons just in case model ignores instruction
+                                                concepts = parts[1].strip().replace(',', ';')
+                                                
+                                                # Basic validation
+                                                if concepts.lower() != "none" and sid.isdigit():
+                                                    results[sid] = concepts
+                                        
+                                        time.sleep(2) # Rate limit nice-ness                                
                             except Exception as e:
                                 print(f"  Gemini API Error: {e}")
                                 
