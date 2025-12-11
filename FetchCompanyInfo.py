@@ -411,9 +411,9 @@ def fetch_gemini_concepts(stock_list):
             Analyze the following list of companies.
             
             Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-            [Nvidia, Oracle, Google, Amazon, Meta, OpenAI]
+            [Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple]
             
-                        Rules:
+            Rules:
                         1. Only return the names of the Tech Giants from the list above that the company is related to.
                         2. If related to multiple, separate with semicolons (e.g., "Nvidia;Google").
                         3. If not related to any of these specific giants, return "None".
