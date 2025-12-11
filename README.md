@@ -54,7 +54,7 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
-| `相關概念` | **Related Concepts** (Scraped from GoodInfo & Gemini) | `Nvidia;Oracle;Google;Amazon;Meta;OpenAI` |
+| `相關概念` | **Related Concepts** (Scraped from GoodInfo) | `Apple概念股`;`Nvidia概念股`;`Google概念股`;`Amazon概念股`;`Meta概念股`;`Oracle概念股` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
