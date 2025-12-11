@@ -447,16 +447,17 @@ def fetch_gemini_concepts(stock_list):
                         if concepts.lower() != "none" and sid.isdigit():
                             results[sid] = concepts
                 
-                time.sleep(2) # Rate limit nice-ness
-                
-            except Exception as e:
-                print(f"  Gemini API Error: {e}")
-                
-    return results
-except Exception as e:
-    print(f"Failed to init Gemini Client: {e}")
-    return {}
+                                time.sleep(2) # Rate limit nice-ness
+                                
+                            except Exception as e:
+                                print(f"  Gemini API Error: {e}")
+                                
+                    return results
+                except Exception as e:
                     print(f"Failed to init Gemini Client: {e}")
+                    return {}
+                
+                def fetch_isin_table(mode: int, market_label: str) -> pd.DataFrame:                    print(f"Failed to init Gemini Client: {e}")
                     return {}
             
             def fetch_goodinfo_data(driver, stock_id):
