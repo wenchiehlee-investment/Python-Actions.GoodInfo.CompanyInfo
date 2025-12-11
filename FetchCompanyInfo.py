@@ -3,6 +3,7 @@ import requests
 import urllib3
 import re
 import time
+import os
 from io import StringIO
 
 # Try to import Selenium
@@ -18,24 +19,119 @@ try:
 except ImportError:
     SELENIUM_AVAILABLE = False
 
+# Try to import Google GenAI
+try:
+    from google import genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
+
 # Suppress only the single warning from urllib3 needed.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# ==== 設定 ====
+# ... [Existing Constants] ...
 INPUT_CSV = "StockID_TWSE_TPEX.csv"
 OUTPUT_CSV = "raw_companyinfo.csv"
-
 BASE_URL = "https://isin.twse.com.tw/isin/C_public.jsp?strMode={mode}"
+HEADERS = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    )
-}
+# ... [Existing Selenium functions: get_selenium_driver, get_goodinfo_group_map, fetch_goodinfo_data] ...
 
-def get_selenium_driver():
+def fetch_gemini_concepts(stock_list):
+    """
+    Uses Gemini API to identify concept stocks for specific tech giants.
+    stock_list: list of tuples (id, name)
+    Returns: dict { 'StockID': 'Concepts' }
+    """
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if not api_key or not GENAI_AVAILABLE:
+        print("Skipping Gemini analysis (API Key missing or SDK not found).")
+        return {}
+
+    print("Initializing Gemini Client...")
+    client = genai.Client(api_key=api_key)
+    
+    # Process in chunks to avoid context limits
+    chunk_size = 40
+    results = {}
+    
+    total_chunks = (len(stock_list) + chunk_size - 1) // chunk_size
+    
+    for i in range(0, len(stock_list), chunk_size):
+        chunk = stock_list[i:i + chunk_size]
+        print(f"  Sending chunk {i//chunk_size + 1}/{total_chunks} to Gemini...")
+        
+        # Format list for prompt
+        stock_text = "\n".join([f"{s[0]} {s[1]}" for s in chunk])
+        
+        prompt = f"""
+        You are a financial analyst specializing in Taiwan tech stocks.
+        Analyze the following list of companies.
+        
+        Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
+        [Nvidia, Oracle, Google, Amazon, Meta, OpenAI]
+        
+        Rules:
+        1. Only return the names of the Tech Giants from the list above that the company is related to.
+        2. If related to multiple, separate with commas (e.g., "Nvidia, Google").
+        3. If not related to any of these specific giants, return "None".
+        4. Output strictly in CSV format: StockID, Matched_Concepts
+        5. Do not output markdown code blocks.
+        
+        Stocks:
+        {stock_text}
+        """
+        
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            
+            # Parse CSV response
+            lines = response.text.strip().split('\n')
+            for line in lines:
+                parts = line.split(',', 1)
+                if len(parts) == 2:
+                    sid = parts[0].strip()
+                    concepts = parts[1].strip()
+                    if concepts.lower() != "none" and "stockid" not in sid.lower():
+                        results[sid] = concepts
+            
+            time.sleep(2) # Rate limit nice-ness
+            
+        except Exception as e:
+            print(f"  Gemini Error: {e}")
+            
+    return results
+
+# ... [fetch_isin_table function] ...
+
+def main():
+    # ... [Existing logic: Load CSV, Fetch ISIN, Fetch ETF] ...
+    
+    # 1) 讀 base CSV
+    base = pd.read_csv(INPUT_CSV, dtype={"代號": str})
+    base["代號"] = base["代號"].astype(str).str.strip()
+
+    # ... [Fetch ISIN] ...
+    # (Abbreviated for patch context, assuming previous structure is maintained)
+    # Actually I need to be careful with 'replace' tool context.
+    # I will target specific insertion points or rewrite main.
+    
+    # Let's rewrite main to be safe.
+    
+    # ... [Fetch ETF] ...
+    
+    # ... [Merge] ...
+    
+    # === Fetch GoodInfo (Selenium) ===
+    # ... [Existing Code] ...
+    
+    # === Fetch Gemini Concepts ===
+    # New Logic Here
+    
+    # ... [Save]
     if not SELENIUM_AVAILABLE:
         return None
     
@@ -127,6 +223,83 @@ def get_goodinfo_group_map(driver):
         
     print(f"Mapped {len(group_map)} stocks to groups.")
     return group_map
+
+def fetch_gemini_concepts(stock_list):
+    """
+    Uses Gemini API to identify concept stocks for specific tech giants.
+    stock_list: list of tuples (id, name)
+    Returns: dict { 'StockID': 'Concepts' }
+    """
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if not api_key or not GENAI_AVAILABLE:
+        print("Skipping Gemini analysis (API Key missing or SDK not found).")
+        return {}
+
+    print("Initializing Gemini Client...")
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        # Process in chunks to avoid context limits
+        chunk_size = 40
+        results = {}
+        
+        total_chunks = (len(stock_list) + chunk_size - 1) // chunk_size
+        
+        for i in range(0, len(stock_list), chunk_size):
+            chunk = stock_list[i:i + chunk_size]
+            print(f"  Sending chunk {i//chunk_size + 1}/{total_chunks} to Gemini...")
+            
+            # Format list for prompt
+            stock_text = "\n".join([f"{s[0]} {s[1]}" for s in chunk])
+            
+            prompt = f"""
+            You are a financial analyst specializing in Taiwan tech stocks.
+            Analyze the following list of companies.
+            
+            Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
+            [Nvidia, Oracle, Google, Amazon, Meta, OpenAI]
+            
+            Rules:
+            1. Only return the names of the Tech Giants from the list above that the company is related to.
+            2. If related to multiple, separate with commas (e.g., "Nvidia, Google").
+            3. If not related to any of these specific giants, return "None".
+            4. Output strictly in CSV format: StockID, Matched_Concepts
+            5. Do not output markdown code blocks.
+            
+            Stocks:
+            {stock_text}
+            """
+            
+            try:
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt
+                )
+                
+                # Parse CSV response
+                text = response.text
+                if text.startswith("```"): # Cleanup markdown
+                    text = text.strip("`").replace("csv\n", "", 1)
+                    
+                lines = text.strip().split('\n')
+                for line in lines:
+                    parts = line.split(',', 1)
+                    if len(parts) == 2:
+                        sid = parts[0].strip()
+                        concepts = parts[1].strip()
+                        # Basic validation
+                        if concepts.lower() != "none" and sid.isdigit():
+                            results[sid] = concepts
+                
+                time.sleep(2) # Rate limit nice-ness
+                
+            except Exception as e:
+                print(f"  Gemini API Error: {e}")
+                
+        return results
+    except Exception as e:
+        print(f"Failed to init Gemini Client: {e}")
+        return {}
 
 def fetch_goodinfo_data(driver, stock_id):
     if driver is None:
@@ -438,6 +611,26 @@ def main():
         driver.quit()
     else:
         print("Skipping GoodInfo fetch (Selenium not available).")
+
+    # === Fetch Gemini Concepts ===
+    # Prepare list [(id, name)]
+    stock_list_for_gemini = list(zip(merged["代號"], merged["名稱"]))
+    gemini_results = fetch_gemini_concepts(stock_list_for_gemini)
+    
+    if gemini_results:
+        print(f"Merging {len(gemini_results)} Gemini concepts...")
+        for sid, concepts in gemini_results.items():
+            # Find the row
+            mask = merged["代號"] == sid
+            if mask.any():
+                idx = merged[mask].index[0]
+                existing = merged.at[idx, "相關概念"]
+                
+                # Append or Set
+                if pd.isna(existing) or existing is None or str(existing).strip() == "":
+                    merged.at[idx, "相關概念"] = f"(Gemini: {concepts})"
+                else:
+                    merged.at[idx, "相關概念"] = f"{existing} | (Gemini: {concepts})"
 
     for c in merged.columns:
         if c not in col_order and c not in [
