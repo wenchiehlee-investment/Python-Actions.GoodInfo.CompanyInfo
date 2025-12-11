@@ -5,6 +5,10 @@ import re
 import time
 import os
 from io import StringIO
+from dotenv import load_dotenv
+
+# Load environment variables from .env file for local development
+load_dotenv()
 
 # Try to import Selenium
 try:
