@@ -413,52 +413,53 @@ def fetch_gemini_concepts(stock_list):
             Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
             [Nvidia, Oracle, Google, Amazon, Meta, OpenAI]
             
-            Rules:
-            1. Only return the names of the Tech Giants from the list above that the company is related to.
-            2. If related to multiple, separate with commas (e.g., "Nvidia, Google").
-            3. If not related to any of these specific giants, return "None".
-            4. Output strictly in CSV format: StockID, Matched_Concepts
-            5. Do not output markdown code blocks.
+                        Rules:
+                        1. Only return the names of the Tech Giants from the list above that the company is related to.
+                        2. If related to multiple, separate with semicolons (e.g., "Nvidia;Google").
+                        3. If not related to any of these specific giants, return "None".
+                        4. Output strictly in CSV format: StockID, Matched_Concepts
+                        5. Do not output markdown code blocks.
+                        
+                        Stocks:
+                        {stock_text}
+                        """
+                        
+                            try:
+                                response = client.models.generate_content(
+                                    model="gemini-2.5-flash",
+                                    contents=prompt
+                                )
+                                
+                                # Parse CSV response
+                                text = response.text
+                                if text.startswith("```"): # Cleanup markdown
+                                    text = text.strip("`").replace("csv\n", "", 1)
+                                    
+                                lines = text.strip().split('\n')
+                                for line in lines:
+                                    parts = line.split(',', 1)
+                                    if len(parts) == 2:
+                                        sid = parts[0].strip()
+                                        # Replace any remaining commas with semicolons just in case model ignores instruction
+                                        concepts = parts[1].strip().replace(',', ';')
+                                        
+                                        # Basic validation
+                                        if concepts.lower() != "none" and sid.isdigit():
+                                            results[sid] = concepts
+                                
+                                time.sleep(2) # Rate limit nice-ness
+                                
+                            except Exception as e:
+                                print(f"  Gemini API Error: {e}")
+                                
+                    return results
+                except Exception as e:
+                    print(f"Failed to init Gemini Client: {e}")
+                    return {}
             
-            Stocks:
-            {stock_text}
-            """
-            
-            try:
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt
-                )
-                
-                # Parse CSV response
-                text = response.text
-                if text.startswith("```"): # Cleanup markdown
-                    text = text.strip("`").replace("csv\n", "", 1)
-                    
-                lines = text.strip().split('\n')
-                for line in lines:
-                    parts = line.split(',', 1)
-                    if len(parts) == 2:
-                        sid = parts[0].strip()
-                        concepts = parts[1].strip()
-                        # Basic validation
-                        if concepts.lower() != "none" and sid.isdigit():
-                            results[sid] = concepts
-                
-                time.sleep(2) # Rate limit nice-ness
-                
-            except Exception as e:
-                print(f"  Gemini API Error: {e}")
-                
-        return results
-    except Exception as e:
-        print(f"Failed to init Gemini Client: {e}")
-        return {}
-
-def fetch_goodinfo_data(driver, stock_id):
-    if driver is None:
-        return None, None
-
+            def fetch_goodinfo_data(driver, stock_id):
+                if driver is None:
+                    return None, None
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
     
     try:
@@ -785,7 +786,7 @@ def main():
                     merged.at[idx, "相關概念"] = concepts
                 else:
                     # Avoid duplicates if possible, but simple append for now
-                    merged.at[idx, "相關概念"] = f"{existing} | {concepts}"
+                    merged.at[idx, "相關概念"] = f"{existing};{concepts}"
 
     for c in merged.columns:
         if c not in col_order and c not in [
