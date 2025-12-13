@@ -464,9 +464,10 @@ def fetch_gemini_concepts(stock_list):
     except Exception as e:
         print(f"Failed to init Gemini Client: {e}")
         return {}            
-            def fetch_goodinfo_data(driver, stock_id):
-                if driver is None:
-                    return None, None
+def fetch_goodinfo_data(driver, stock_id):
+    if driver is None:
+        return None, None
+
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
     
     try:
