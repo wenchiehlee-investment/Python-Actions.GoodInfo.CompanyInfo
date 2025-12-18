@@ -692,12 +692,18 @@ def main():
         ]
     ]
 
-    # 3) 抓取 ETF 成分股權重 (0050, 0056)
+    # 3) 抓取 ETF 成分股權重 (0050, 0056, 00878, 00919)
     print("下載 ETF 0050 成分股權重...")
     weights_0050 = fetch_etf_weights("0050")
-    
+
     print("下載 ETF 0056 成分股權重...")
     weights_0056 = fetch_etf_weights("0056")
+
+    print("下載 ETF 00878 成分股權重...")
+    weights_00878 = fetch_etf_weights("00878")
+
+    print("下載 ETF 00919 成分股權重...")
+    weights_00919 = fetch_etf_weights("00919")
 
     # 4) 合併
     merged = base.merge(twse, on="代號", how="left")
@@ -723,6 +729,8 @@ def main():
     # === Mapping ETF Weights ===
     merged["ETF_0050_權重"] = merged["代號"].map(weights_0050)
     merged["ETF_0056_權重"] = merged["代號"].map(weights_0056)
+    merged["ETF_00878_權重"] = merged["代號"].map(weights_00878)
+    merged["ETF_00919_權重"] = merged["代號"].map(weights_00919)
 
     # 5) 欄位順序
     col_order = [
@@ -732,6 +740,8 @@ def main():
         "產業別",          # This serves as '相關產業'
         "ETF_0050_權重",
         "ETF_0056_權重",
+        "ETF_00878_權重",
+        "ETF_00919_權重",
         "主要業務",
         "相關概念",
         "相關集團",

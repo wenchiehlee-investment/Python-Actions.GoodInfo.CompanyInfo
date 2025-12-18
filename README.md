@@ -7,7 +7,7 @@ This project is a Python-based automation tool designed to fetch, consolidate, a
 ### Key Features
 *   **Watchlist Synchronization:** Downloads the latest "Observation List" (`StockID_TWSE_TPEX.csv`) and "Focus List" from a remote GitHub repository.
 *   **Data Enrichment:** Scrapes official market data (Market Type, Industry Category) from `isin.twse.com.tw`.
-*   **ETF Data:** Fetches portfolio weights for **0050** and **0056** ETFs from MoneyDJ.
+*   **ETF Data:** Fetches portfolio weights for **0050**, **0056**, **00878**, and **00919** ETFs from MoneyDJ.
 *   **GoodInfo Scraping:** Uses **Selenium** to scrape detailed "Main Business" and "Related Concepts" from GoodInfo, and bulk-maps "Related Groups" from the Group List page.
 *   **Data Consolidation:** Merges all data into a comprehensive CSV report.
 
@@ -53,6 +53,8 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
+| `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |
+| `ETF_00919_權重` | Weight in ETF 00919 (%) | `1.8` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
 | `相關概念` | **Related Concepts** (Scraped from Gemini CLI) | `Apple概念股`;`Nvidia概念股`;`Google概念股`;`Amazon概念股`;`Meta概念股`;`Oracle概念股` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
