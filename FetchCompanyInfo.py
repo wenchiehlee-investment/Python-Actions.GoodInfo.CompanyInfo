@@ -48,7 +48,7 @@ HEADERS = {
 def get_selenium_driver():
     if not SELENIUM_AVAILABLE:
         return None
-    
+
     print("Initializing Selenium Driver...")
     options = Options()
     options.add_argument("--headless")
@@ -57,12 +57,12 @@ def get_selenium_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    
+
     try:
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
-        # Set a strict page load timeout (30 seconds) to prevent hanging
-        driver.set_page_load_timeout(30)
+        # Increase timeout for CI environments (60 seconds)
+        driver.set_page_load_timeout(60)
         return driver
     except Exception as e:
         print(f"Failed to initialize Selenium: {e}")
@@ -463,62 +463,77 @@ def fetch_gemini_concepts(stock_list):
         return all_results
     except Exception as e:
         print(f"Failed to init Gemini Client: {e}")
-        return {}            
-def fetch_goodinfo_data(driver, stock_id):
+        return {}
+def fetch_goodinfo_data(driver, stock_id, max_retries=3):
     if driver is None:
         return None, None
 
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
-    
-    try:
+
+    for attempt in range(max_retries):
         try:
-            driver.get(url)
+            try:
+                driver.get(url)
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 5  # 5, 10, 15 seconds
+                    print(f"  Timeout loading page for {stock_id}, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    print(f"  Final timeout/error loading page for {stock_id}: {e}")
+                    return None, None
+
+            # Wait for the "Initializing" to pass and content to load
+            wait = WebDriverWait(driver, 20)
+            wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "td")))
+            except:
+                pass
+
+            html = driver.page_source
+
+            def extract(field_name):
+                # Case A: Special for Main Business (often in a <p>)
+                if field_name == "主要業務":
+                    # <nobr>主要業務</nobr>...<p...>(Value)</p>
+                    p_match = re.search(fr"<nobr>{field_name}</nobr>.*?<p[^>]*>(.*?)</p>", html, re.DOTALL | re.IGNORECASE)
+                    if p_match:
+                        return re.sub(r'<[^>]+>', '', p_match.group(1)).strip().replace('&nbsp;', ' ')
+
+                # General fallback
+                patterns = [
+                    fr"<nobr>{field_name}</nobr>.*?<td[^>]*>(.*?)</td>",
+                    fr">{field_name}</td>\s*<td[^>]*>(.*?)</td>",
+                    fr">{field_name}</nobr>.*?<td[^>]*>(.*?)</td>"
+                ]
+
+                for pat in patterns:
+                    m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
+                    if m:
+                        return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
+                return None
+
+            main_biz = extract("主要業務")
+            concepts = extract("相關概念")
+
+            # Group is now handled globally, removed from here
+
+            return main_biz, concepts
+
         except Exception as e:
-            print(f"  Timeout/Error loading page for {stock_id}: {e}")
-            return None, None
-        
-        # Wait for the "Initializing" to pass and content to load
-        wait = WebDriverWait(driver, 15)
-        wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        
-        try:
-            wait.until(EC.presence_of_element_located((By.TAG_NAME, "td")))
-        except:
-            pass 
+            if attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 5
+                print(f"  Error fetching GoodInfo for {stock_id}, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries}): {e}")
+                time.sleep(wait_time)
+                continue
+            else:
+                print(f"  Final error fetching GoodInfo for {stock_id}: {e}")
+                return None, None
 
-        html = driver.page_source
-        
-        def extract(field_name):
-            # Case A: Special for Main Business (often in a <p>)
-            if field_name == "主要業務":
-                # <nobr>主要業務</nobr>...<p...>(Value)</p>
-                p_match = re.search(fr"<nobr>{field_name}</nobr>.*?<p[^>]*>(.*?)</p>", html, re.DOTALL | re.IGNORECASE)
-                if p_match:
-                    return re.sub(r'<[^>]+>', '', p_match.group(1)).strip().replace('&nbsp;', ' ')
-            
-            # General fallback
-            patterns = [
-                fr"<nobr>{field_name}</nobr>.*?<td[^>]*>(.*?)</td>",
-                fr">{field_name}</td>\s*<td[^>]*>(.*?)</td>",
-                fr">{field_name}</nobr>.*?<td[^>]*>(.*?)</td>"
-            ]
-            
-            for pat in patterns:
-                m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
-                if m:
-                    return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
-            return None
-
-        main_biz = extract("主要業務")
-        concepts = extract("相關概念")
-        
-        # Group is now handled globally, removed from here
-
-        return main_biz, concepts
-
-    except Exception as e:
-        print(f"Error fetching GoodInfo for {stock_id}: {e}")
-        return None, None
+    return None, None
 
 def fetch_etf_weights(etf_id):
     """
@@ -777,9 +792,9 @@ def main():
             merged.at[idx, "主要業務"] = mb
             merged.at[idx, "相關概念"] = cc
             merged.at[idx, "相關集團"] = gp
-            
-            # Small delay to be polite/avoid blocked
-            time.sleep(2)
+
+            # Delay to be polite/avoid being blocked (longer for CI environments)
+            time.sleep(4)
         
         driver.quit()
     else:
