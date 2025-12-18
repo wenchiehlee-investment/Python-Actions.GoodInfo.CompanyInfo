@@ -378,58 +378,74 @@ def get_goodinfo_group_map(driver):
     print(f"Mapped {len(group_map)} stocks to groups.")
     return group_map
 
-def _process_gemini_batch(client, stock_chunk):
+def _process_gemini_batch(client, stock_chunk, max_retries=5):
     """Helper to process a single batch of stocks with Gemini."""
     results = {}
     # Format list for prompt
     stock_text = "\n".join([f"{s[0]} {s[1]}" for s in stock_chunk])
-    
+
     prompt = f"""
     You are a financial analyst specializing in Taiwan tech stocks.
     Analyze the following list of companies.
-    
+
     Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
     [Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple]
-    
+
     Rules:
     1. Only return the names of the Tech Giants from the list above that the company is related to.
     2. If related to multiple, separate with semicolons (e.g., "Nvidia;Google").
     3. If not related to any of these specific giants, return "None".
     4. Output strictly in CSV format: StockID, Matched_Concepts
     5. Do not output markdown code blocks.
-    
+
     Stocks:
     {stock_text}
     """
-    
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-        
-        # Parse CSV response
-        text = response.text
-        if text.startswith("```"): # Cleanup markdown
-            text = text.strip("`").replace("csv\n", "", 1)
-            
-        lines = text.strip().split('\n')
-        for line in lines:
-            parts = line.split(',', 1)
-            if len(parts) == 2:
-                sid = parts[0].strip()
-                # Replace any remaining commas with semicolons
-                concepts = parts[1].strip().replace(',', ';')
-                
-                # Basic validation
-                if concepts.lower() != "none" and sid.isdigit():
-                    results[sid] = concepts
-        
-        time.sleep(2) # Rate limit nice-ness
-        
-    except Exception as e:
-        print(f"  Gemini API Error: {e}")
-        
+
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+
+            # Parse CSV response
+            text = response.text
+            if text.startswith("```"): # Cleanup markdown
+                text = text.strip("`").replace("csv\n", "", 1)
+
+            lines = text.strip().split('\n')
+            for line in lines:
+                parts = line.split(',', 1)
+                if len(parts) == 2:
+                    sid = parts[0].strip()
+                    # Replace any remaining commas with semicolons
+                    concepts = parts[1].strip().replace(',', ';')
+
+                    # Basic validation
+                    if concepts.lower() != "none" and sid.isdigit():
+                        results[sid] = concepts
+
+            # Success - wait before next request
+            time.sleep(3)
+            return results
+
+        except Exception as e:
+            error_str = str(e)
+            # Check if it's a 503 (overloaded) or rate limit error
+            if '503' in error_str or 'overloaded' in error_str.lower() or 'rate' in error_str.lower():
+                if attempt < max_retries - 1:
+                    wait_time = (2 ** attempt) * 3  # Exponential backoff: 3, 6, 12, 24, 48 seconds
+                    print(f"  Gemini API overloaded/rate limited, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    print(f"  Gemini API Error after {max_retries} attempts: {e}")
+            else:
+                # Non-retryable error
+                print(f"  Gemini API Error: {e}")
+                break
+
     return results
 
 def fetch_gemini_concepts(stock_list):
