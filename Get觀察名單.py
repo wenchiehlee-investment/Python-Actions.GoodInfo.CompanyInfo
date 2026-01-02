@@ -2,123 +2,81 @@
 # -*- coding: utf-8 -*-
 """
 Get觀察名單.py
-Downloads Taiwan stock market lists from GitHub repository:
-1. 觀察名單.csv -> StockID_TWSE_TPEX.csv (Observation list)
-2. 專注名單.csv -> StockID_TWSE_TPEX_focus.csv (Focus list)
+Version: 2.0
+Description: Downloads Taiwan stock market observation and focus lists from GitHub repository.
+             1. 觀察名單.csv -> StockID_TWSE_TPEX.csv (Observation list)
+             2. 專注名單.csv -> StockID_TWSE_TPEX_focus.csv (Focus list)
 """
 
 import requests
 import os
+import time
 from datetime import datetime
 
-def download_file(url, output_file, list_name):
-    """
-    Download a file from URL and save locally
-
-    Args:
-        url: Source URL
-        output_file: Local filename to save
-        list_name: Display name for the list
-
-    Returns:
-        bool: True if successful, False otherwise
-    """
+def download_file(url, output_file, description, add_taiex=False):
+    """Download a file from a URL and save it locally."""
     try:
-        print(f"\n開始下載{list_name}...")
+        print(f"正在下載 {description}...")
         print(f"來源: {url}")
 
-        # Download the file
         response = requests.get(url, timeout=30)
-        response.raise_for_status()  # Raise an exception for bad status codes
+        response.raise_for_status()
 
-        # Save to file
-        with open(output_file, 'wb') as f:
-            f.write(response.content)
+        content = response.content.decode('utf-8')
 
-        # Get file size
+        # Add TAIEX if requested and not present
+        if add_taiex:
+             if "0000,台灣加權指數" not in content and "0000,??????????" not in content:
+                print("加入台灣加權指數 (0000) 到名單中...")
+                if not content.endswith('\n'):
+                    content += '\n'
+                content += "0000,台灣加權指數\n"
+
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(content)
+
         file_size = os.path.getsize(output_file)
-
-        print(f"✅ 下載成功!")
-        print(f"   檔案名稱: {output_file}")
-        print(f"   檔案大小: {file_size:,} bytes")
-        print(f"   下載時間: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-        # Try to read and count stocks
-        try:
-            with open(output_file, 'r', encoding='utf-8') as f:
-                first_line = f.readline().strip()
-                stock_count = sum(1 for _ in f)
-                print(f"   檔案標頭: {first_line}")
-                print(f"   股票數量: {stock_count} 檔")
-        except UnicodeDecodeError:
-            # Try with different encoding
-            with open(output_file, 'r', encoding='big5') as f:
-                first_line = f.readline().strip()
-                stock_count = sum(1 for _ in f)
-                print(f"   檔案標頭: {first_line}")
-                print(f"   股票數量: {stock_count} 檔")
-
+        print(f"✅ {description} 下載成功!")
+        print(f"   儲存為: {output_file}")
+        print(f"   大小: {file_size:,} bytes")
         return True
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ 下載失敗: {e}")
+        print(f"❌ {description} 下載失敗: {e}")
         return False
     except Exception as e:
-        print(f"❌ 處理檔案時發生錯誤: {e}")
+        print(f"❌ 處理 {description} 時發生錯誤: {e}")
         return False
 
-def download_observation_list():
-    """Download observation list (觀察名單)"""
-    url = "https://raw.githubusercontent.com/wenchiehlee/GoPublic/refs/heads/main/%E8%A7%80%E5%AF%9F%E5%90%8D%E5%96%AE.csv"
-    output_file = "StockID_TWSE_TPEX.csv"
-    return download_file(url, output_file, "觀察名單")
-
-def download_focus_list():
-    """Download focus list (專注名單)"""
-    url = "https://raw.githubusercontent.com/wenchiehlee/GoPublic/refs/heads/main/%E5%B0%88%E6%B3%A8%E5%90%8D%E5%96%AE.csv"
-    output_file = "StockID_TWSE_TPEX_focus.csv"
-    return download_file(url, output_file, "專注名單")
-
 def main():
-    """Main function"""
     print("=" * 60)
-    print("台灣股市名單下載程式")
-    print("=" * 60)
-    print("📥 下載來源: wenchiehlee/GoPublic")
-    print("📋 名單類型: 觀察名單 + 專注名單")
-
-    # Download both lists
-    success_observation = download_observation_list()
-    success_focus = download_focus_list()
-
-    # Summary
-    print("\n" + "=" * 60)
-    print("下載結果摘要")
+    print(f"台灣股市名單下載程式 v2.0")
+    print(f"執行時間: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    if success_observation:
-        print("✅ 觀察名單 (StockID_TWSE_TPEX.csv) - 下載成功")
-    else:
-        print("❌ 觀察名單 (StockID_TWSE_TPEX.csv) - 下載失敗")
+    base_url = "https://raw.githubusercontent.com/wenchiehlee/GoPublic/refs/heads/main"
+    
+    # Task 1: Observation List
+    # URL encoded: %E8%A7%80%E5%AF%9F%E5%90%8D%E5%96%AE.csv
+    url_obs = f"{base_url}/%E8%A7%80%E5%AF%9F%E5%90%8D%E5%96%AE.csv"
+    file_obs = "StockID_TWSE_TPEX.csv"
+    success_obs = download_file(url_obs, file_obs, "觀察名單", add_taiex=True)
 
-    if success_focus:
-        print("✅ 專注名單 (StockID_TWSE_TPEX_focus.csv) - 下載成功")
-    else:
-        print("❌ 專注名單 (StockID_TWSE_TPEX_focus.csv) - 下載失敗")
+    print("-" * 60)
 
-    # Overall status
-    if success_observation and success_focus:
-        print("\n程式執行完成! 🎉")
-        print("兩份名單皆已成功下載")
-        return 0
-    elif success_observation or success_focus:
-        print("\n程式部分成功 ⚠️")
-        print("至少一份名單下載失敗")
-        return 1
+    # Task 2: Focus List
+    # URL encoded: %E5%B0%88%E6%B3%A8%E5%90%8D%E5%96%AE.csv
+    url_focus = f"{base_url}/%E5%B0%88%E6%B3%A8%E5%90%8D%E5%96%AE.csv"
+    file_focus = "StockID_TWSE_TPEX_focus.csv"
+    success_focus = download_file(url_focus, file_focus, "專注名單", add_taiex=False)
+
+    print("=" * 60)
+    if success_obs and success_focus:
+        print("所有名單更新完成! 🎉")
     else:
-        print("\n程式執行失敗! ❌")
-        print("所有名單下載失敗")
-        return 1
+        print("部分名單更新失敗，請檢查錯誤訊息。 ⚠️")
+        if not success_obs and not success_focus:
+             exit(1)
 
 if __name__ == "__main__":
-    exit(main())
+    main()
