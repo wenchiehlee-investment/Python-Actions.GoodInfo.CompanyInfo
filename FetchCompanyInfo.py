@@ -139,7 +139,7 @@ def get_goodinfo_group_map(driver):
 
 def fetch_goodinfo_data(driver, stock_id):
     if driver is None:
-        return None, None
+        return None, None, None
 
     url = f"https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={stock_id}"
     
@@ -182,14 +182,27 @@ def fetch_goodinfo_data(driver, stock_id):
                     return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
             return None
 
+        def extract_market_cap():
+            patterns = [
+                r"<nobr>\s*市值(?:\s*\([^<]*\))?\s*</nobr>.*?<td[^>]*>(.*?)</td>",
+                r">市值(?:\s*\([^<]*\))?</td>\s*<td[^>]*>(.*?)</td>",
+                r">市值(?:\s*\([^<]*\))?</nobr>.*?<td[^>]*>(.*?)</td>"
+            ]
+            for pat in patterns:
+                m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
+                if m:
+                    return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
+            return None
+
         main_biz = extract("主要業務")
         concepts = extract("相關概念")
+        market_cap = extract_market_cap()
         
-        return main_biz, concepts
+        return main_biz, concepts, market_cap
 
     except Exception as e:
         print(f"Error fetching GoodInfo for {stock_id}: {e}")
-        return None, None
+        return None, None, None
 
 def fetch_gemini_concepts(stock_list):
     """
@@ -532,9 +545,23 @@ def fetch_goodinfo_data(driver, stock_id, max_retries=3):
                         return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
                 return None
 
+            def extract_market_cap():
+                patterns = [
+                    r"<nobr>\s*市值(?:\s*\([^<]*\))?\s*</nobr>.*?<td[^>]*>(.*?)</td>",
+                    r">市值(?:\s*\([^<]*\))?</td>\s*<td[^>]*>(.*?)</td>",
+                    r">市值(?:\s*\([^<]*\))?</nobr>.*?<td[^>]*>(.*?)</td>"
+                ]
+                for pat in patterns:
+                    m = re.search(pat, html, re.DOTALL | re.IGNORECASE)
+                    if m:
+                        return re.sub(r'<[^>]+>', '', m.group(1)).strip().replace('&nbsp;', ' ')
+                return None
+
             main_biz = extract("主要業務")
             concepts = extract("相關概念")
-            market_cap = extract("市值") or extract("目前市值") or extract("總市值")
+            market_cap = extract_market_cap()
+            if not market_cap:
+                market_cap = extract("市值") or extract("目前市值") or extract("總市值")
 
             # Group is now handled globally, removed from here
 
@@ -757,27 +784,13 @@ def main():
         .fillna(merged["產業別_EMG"])
         .fillna(merged["產業別_PUB"])
     )
+    merged["市值"] = None
 
     # === Mapping ETF Weights ===
     merged["ETF_0050_權重"] = merged["代號"].map(weights_0050)
     merged["ETF_0056_權重"] = merged["代號"].map(weights_0056)
     merged["ETF_00878_權重"] = merged["代號"].map(weights_00878)
     merged["ETF_00919_權重"] = merged["代號"].map(weights_00919)
-
-    # 5) 欄位順序
-    # Initial base columns
-    col_order = [
-        "代號",
-        "名稱",
-        "市場別",
-        "產業別",
-        "市值", # Added
-        "ETF_0050_權重",
-        "ETF_0056_權重",
-        "ETF_00878_權重",
-        "ETF_00919_權重",
-        "主要業務",
-    ]
 
     # Initialize empty columns
     merged["主要業務"] = None
@@ -801,7 +814,7 @@ def main():
             print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
             
             # Fetch Business & Concepts
-            mb, cc, mc = fetch_goodinfo_data(driver, stock_id)
+            mb, cc, mv = fetch_goodinfo_data(driver, stock_id)
             
             # Get Group from Map
             gp = group_map.get(str(stock_id))
@@ -810,7 +823,7 @@ def main():
             merged.at[idx, "主要業務"] = mb
             merged.at[idx, "相關概念"] = cc
             merged.at[idx, "相關集團"] = gp
-            merged.at[idx, "市值"] = mc
+            merged.at[idx, "市值"] = mv
 
             # Delay to be polite/avoid being blocked (longer for CI environments)
             time.sleep(4)
@@ -840,20 +853,24 @@ def main():
                     # Avoid duplicates if possible, but simple append for now
                     merged.at[idx, "相關概念"] = f"{existing};{concepts}"
 
-    # === Breakdown Concept Columns ===
-    concept_list = ["nVidia", "Google", "Amazon", "Meta", "OpenAI", "Microsoft", "AMD", "Apple", "Oracle"]
-    print("Breaking down concepts...")
-    
-    for concept in concept_list:
-        col_name = f"{concept}概念"
-        col_order.append(col_name) # Add to column order
-        
-        # Check if concept is in "相關概念" (case insensitive)
-        merged[col_name] = merged["相關概念"].apply(
-            lambda x: "V" if pd.notna(x) and concept.lower() in str(x).lower() else ""
-        )
+    merged = add_concept_flag_columns(merged)
 
-    col_order.append("相關集團")
+    # 5) 欄位順序
+    col_order = [
+        "代號",
+        "名稱",
+        "市場別",
+        "產業別",          # This serves as '相關產業'
+        "市值",
+        "ETF_0050_權重",
+        "ETF_0056_權重",
+        "ETF_00878_權重",
+        "ETF_00919_權重",
+        "主要業務",
+        "相關概念",
+        *CONCEPT_COLUMNS,
+        "相關集團",
+    ]
 
     for c in merged.columns:
         if c not in col_order and c not in [
@@ -861,7 +878,7 @@ def main():
             "市場別_TPEX", "產業別_TPEX", 
             "市場別_EMG", "產業別_EMG",
             "市場別_PUB", "產業別_PUB",
-            "上市日_TWSE", "相關概念"
+            "上市日_TWSE"
         ]:
             # 排除已合併的原始欄位，保留其他可能的額外欄位
             col_order.append(c)

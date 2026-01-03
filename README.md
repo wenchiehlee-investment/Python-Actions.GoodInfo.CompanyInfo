@@ -51,21 +51,21 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `名稱` | Company Name (e.g., `台積電`) | `台積電` |
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | `上市` |
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
-| `市值` | **Market Cap** (Scraped from GoodInfo) | `15.5兆` |
+| `市值` | Market Cap (scraped from GoodInfo when available) | `15.5兆` |
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
 | `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |
 | `ETF_00919_權重` | Weight in ETF 00919 (%) | `1.8` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
-| `nVidia概念` | Concept Breakdown (V if matched) | `V` |
-| `Google概念` | Concept Breakdown (V if matched) | `V` |
-| `Amazon概念` | Concept Breakdown (V if matched) | `V` |
-| `Meta概念` | Concept Breakdown (V if matched) | `V` |
-| `OpenAI概念` | Concept Breakdown (V if matched) | `V` |
-| `Microsoft概念` | Concept Breakdown (V if matched) | `V` |
-| `AMD概念` | Concept Breakdown (V if matched) | `V` |
-| `Apple概念` | Concept Breakdown (V if matched) | `V` |
-| `Oracle概念` | Concept Breakdown (V if matched) | `V` |
+| `nVidia概念` | Concept Breakdown (1 if matched) | `1` |
+| `Google概念` | Concept Breakdown (1 if matched) | `1` |
+| `Amazon概念` | Concept Breakdown (1 if matched) | `1` |
+| `Meta概念` | Concept Breakdown (1 if matched) | `1` |
+| `OpenAI概念` | Concept Breakdown (1 if matched) | `1` |
+| `Microsoft概念` | Concept Breakdown (1 if matched) | `1` |
+| `AMD概念` | Concept Breakdown (1 if matched) | `1` |
+| `Apple概念` | Concept Breakdown (1 if matched) | `1` |
+| `Oracle概念` | Concept Breakdown (1 if matched) | `1` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
