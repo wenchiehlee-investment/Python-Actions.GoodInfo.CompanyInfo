@@ -57,7 +57,6 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |
 | `ETF_00919_權重` | Weight in ETF 00919 (%) | `1.8` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
-| `相關概念` | **Related Concepts** (Raw string) | `Apple概念股;Nvidia概念股...` |
 | `nVidia概念` | Concept Breakdown (V if matched) | `V` |
 | `Google概念` | Concept Breakdown (V if matched) | `V` |
 | `Amazon概念` | Concept Breakdown (V if matched) | `V` |

@@ -777,7 +777,6 @@ def main():
         "ETF_00878_權重",
         "ETF_00919_權重",
         "主要業務",
-        "相關概念",
     ]
 
     # Initialize empty columns
@@ -862,7 +861,7 @@ def main():
             "市場別_TPEX", "產業別_TPEX", 
             "市場別_EMG", "產業別_EMG",
             "市場別_PUB", "產業別_PUB",
-            "上市日_TWSE"
+            "上市日_TWSE", "相關概念"
         ]:
             # 排除已合併的原始欄位，保留其他可能的額外欄位
             col_order.append(c)
