@@ -534,7 +534,7 @@ def fetch_goodinfo_data(driver, stock_id, max_retries=3):
 
             main_biz = extract("主要業務")
             concepts = extract("相關概念")
-            market_cap = extract("總市值")
+            market_cap = extract("市值") or extract("目前市值") or extract("總市值")
 
             # Group is now handled globally, removed from here
 
