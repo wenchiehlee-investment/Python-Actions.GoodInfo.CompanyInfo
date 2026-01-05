@@ -51,17 +51,28 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `名稱` | Company Name (e.g., `台積電`) | `台積電` |
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | `上市` |
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
+| `市值` | **Market Cap** (Scraped from GoodInfo) | `15.5兆` |
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
 | `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |
 | `ETF_00919_權重` | Weight in ETF 00919 (%) | `1.8` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
-| `相關概念` | **Related Concepts** (Scraped from Gemini CLI) | `Apple概念股`;`Nvidia概念股`;`Google概念股`;`Amazon概念股`;`Meta概念股`;`Oracle概念股` |
+| `相關概念` | **Related Concepts** (Raw string) | `Apple概念股;Nvidia概念股...` |
+| `nVidia概念` | Concept Breakdown (V if matched) | `V` |
+| `Google概念` | Concept Breakdown (V if matched) | `V` |
+| `Amazon概念` | Concept Breakdown (V if matched) | `V` |
+| `Meta概念` | Concept Breakdown (V if matched) | `V` |
+| `OpenAI概念` | Concept Breakdown (V if matched) | `V` |
+| `Microsoft概念` | Concept Breakdown (V if matched) | `V` |
+| `AMD概念` | Concept Breakdown (V if matched) | `V` |
+| `Apple概念` | Concept Breakdown (V if matched) | `V` |
+| `Oracle概念` | Concept Breakdown (V if matched) | `V` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
 The script uses **Selenium** with a headless Chrome browser to bypass anti-scraping measures on GoodInfo.
 *   **Group Mapping:** First, it visits the "Group Stocks" list to build a map of all stocks belonging to specific business groups.
-*   **Detail Scraping:** Then, it visits each stock's detail page to extract "Main Business" and "Related Concepts".
+*   **Detail Scraping:** Then, it visits each stock's detail page to extract "Main Business", "Market Cap", and "Related Concepts".
+*   **Concept Breakdown:** Finally, it parses the "Related Concepts" to populate the specific tech giant columns.
 
 *Note: This process adds significant runtime (approx. 5-10 seconds per stock).*
