@@ -45,6 +45,50 @@ HEADERS = {
     )
 }
 
+CONCEPT_KEYWORDS = {
+    "nVidia概念": ["nvidia", "輝達"],
+    "Google概念": ["google", "谷歌"],
+    "Amazon概念": ["amazon", "亞馬遜"],
+    "Meta概念": ["meta", "facebook", "臉書"],
+    "OpenAI概念": ["openai", "open ai", "chatgpt"],
+    "Microsoft概念": ["microsoft", "msft", "微軟"],
+    "AMD概念": ["amd", "超微"],
+    "Apple概念": ["apple", "蘋果"],
+    "Oracle概念": ["oracle", "甲骨文"],
+}
+CONCEPT_COLUMNS = list(CONCEPT_KEYWORDS.keys())
+
+def build_concept_flags(concepts_text):
+    if pd.isna(concepts_text) or concepts_text is None:
+        text = ""
+    else:
+        text = str(concepts_text)
+
+    lowered = text.lower()
+    tokens = [t.strip().lower() for t in re.split(r"[;,、/|\\s]+", text) if t.strip()]
+
+    flags = {}
+    for col, keywords in CONCEPT_KEYWORDS.items():
+        found = False
+        for kw in keywords:
+            kw_l = kw.lower()
+            if kw_l in lowered or any(kw_l in token for token in tokens):
+                found = True
+                break
+        flags[col] = 1 if found else 0
+    return flags
+
+def add_concept_flag_columns(df):
+    if "相關概念" not in df.columns:
+        for col in CONCEPT_COLUMNS:
+            df[col] = 0
+        return df
+
+    flags_df = df["相關概念"].apply(build_concept_flags).apply(pd.Series)
+    for col in CONCEPT_COLUMNS:
+        df[col] = flags_df[col].fillna(0).astype(int)
+    return df
+
 def get_selenium_driver():
     if not SELENIUM_AVAILABLE:
         return None
