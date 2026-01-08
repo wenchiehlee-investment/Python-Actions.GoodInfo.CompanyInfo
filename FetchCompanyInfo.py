@@ -610,6 +610,52 @@ def fetch_etf_weights(etf_id):
         print(f"Error fetching ETF {etf_id}: {e}")
         return {}
 
+def fetch_taifex_weights():
+    """
+    Fetches TAIEX constituent weights from TAIFEX.
+    Returns: dict { 'StockID': 'Weight' }
+    """
+    url = "https://www.taifex.com.tw/cht/9/futuresQADetail"
+    try:
+        print("Fetching TAIFEX weights...")
+        res = requests.get(url, headers=HEADERS, timeout=20)
+        res.encoding = "utf-8" 
+        
+        # Use pandas to parse the table
+        dfs = pd.read_html(StringIO(res.text))
+        if not dfs:
+            print("No tables found on TAIFEX page.")
+            return {}
+        
+        df = dfs[0]
+        
+        # The table is double-columned: 
+        # Left: [排行, 證券名稱, 證券名稱.1, 市值佔 大盤比重]
+        # Right: [排行.1, 證券名稱.2, 證券名稱.3, 市值佔 大盤比重.1]
+        
+        # Part 1 (Left)
+        p1 = df.iloc[:, [1, 3]].copy() # 證券名稱 (ID), 市值佔 大盤比重
+        p1.columns = ['ID', 'Weight']
+        
+        # Part 2 (Right)
+        p2 = df.iloc[:, [5, 7]].copy() # 證券名稱.2 (ID), 市值佔 大盤比重.1
+        p2.columns = ['ID', 'Weight']
+        
+        full = pd.concat([p1, p2], ignore_index=True)
+        full = full.dropna(subset=['ID'])
+        
+        # Clean ID (ensure string)
+        full['ID'] = full['ID'].astype(str).str.strip()
+        
+        # Create Map
+        weights = full.set_index('ID')['Weight'].to_dict()
+        print(f"  -> Retrieved {len(weights)} constituents from TAIFEX")
+        return weights
+        
+    except Exception as e:
+        print(f"Error fetching TAIFEX weights: {e}")
+        return {}
+
 def fetch_isin_table(mode: int, market_label: str) -> pd.DataFrame:
     """
     mode = 2 → TWSE（上市）
@@ -737,6 +783,9 @@ def main():
     print("下載 ETF 00919 成分股權重...")
     weights_00919 = fetch_etf_weights("00919")
 
+    print("下載 TAIFEX 大盤權重...")
+    weights_taifex = fetch_taifex_weights()
+
     # 4) 合併
     merged = base.merge(twse, on="代號", how="left")
     merged = merged.merge(tpex, on="代號", how="left")
@@ -763,6 +812,7 @@ def main():
     merged["ETF_0056_權重"] = merged["代號"].map(weights_0056)
     merged["ETF_00878_權重"] = merged["代號"].map(weights_00878)
     merged["ETF_00919_權重"] = merged["代號"].map(weights_00919)
+    merged["市值佔大盤比重"] = merged["代號"].map(weights_taifex)
 
     # 5) 欄位順序
     # Initial base columns
@@ -771,7 +821,8 @@ def main():
         "名稱",
         "市場別",
         "產業別",
-        "市值", # Added
+        "市值",
+        "市值佔大盤比重", # Added
         "ETF_0050_權重",
         "ETF_0056_權重",
         "ETF_00878_權重",

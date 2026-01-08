@@ -52,6 +52,7 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | `上市` |
 | `產業別` | Industry Category (e.g., 半導體業) | `半導體業` |
 | `市值` | **Market Cap** (Scraped from GoodInfo) | `15.5兆` |
+| `市值佔大盤比重` | **TAIEX Weight** (%) | `43.09%` |
 | `ETF_0050_權重` | Weight in ETF 0050 (%) | `47.5` |
 | `ETF_0056_權重` | Weight in ETF 0056 (%) | `2.5` |
 | `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |

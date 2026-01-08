@@ -9,6 +9,7 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `市場別` | Market Type (上市, 上櫃, 興櫃, 公開發行) | TWSE ISIN |
 | `產業別` | Industry Category | TWSE ISIN |
 | `市值` | Market Capitalization (兆/億) | GoodInfo (Summary Table) |
+| `市值佔大盤比重` | Weight in TAIEX Index (%) | TAIFEX Futures QA Detail |
 | `ETF_0050_權重` | Weight in Yuanta/P-shares Taiwan Top 50 ETF (%) | MoneyDJ constituent data |
 | `ETF_0056_權重` | Weight in Yuanta/P-shares Taiwan Dividend Plus ETF (%) | MoneyDJ constituent data |
 | `ETF_00878_權重` | Weight in Cathay MSCI Taiwan ESG Sustainability High Dividend Yield ETF (%) | MoneyDJ constituent data |

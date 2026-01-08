@@ -39,6 +39,11 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 *   **IDs:** 0050, 0056, 00878, 00919.
 *   **Strategy:** `requests` + `pandas.read_html`.
 
+#### TAIFEX (Market Cap Weight)
+*   **URL:** `https://www.taifex.com.tw/cht/9/futuresQADetail`
+*   **Data:** TAIEX Index Weights (市值佔大盤比重).
+*   **Strategy:** `requests` + `pandas.read_html`.
+
 #### GoodInfo (Business, Concepts, Groups, Market Cap)
 *   **Group Map:** Visits `https://goodinfo.tw/tw/StockList.asp?MARKET_CAT=集團股` first. Iterates *all* group links to build a global `{StockID: GroupName}` map.
 *   **Stock Details:** Visits `https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={id}`.
