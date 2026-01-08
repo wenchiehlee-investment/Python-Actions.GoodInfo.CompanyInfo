@@ -58,15 +58,15 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `ETF_00878_權重` | Weight in ETF 00878 (%) | `3.2` |
 | `ETF_00919_權重` | Weight in ETF 00919 (%) | `1.8` |
 | `主要業務` | **Main Business** (Scraped from GoodInfo) | `晶圓代工...` |
-| `nVidia概念` | Concept Breakdown (V if matched) | `V` |
-| `Google概念` | Concept Breakdown (V if matched) | `V` |
-| `Amazon概念` | Concept Breakdown (V if matched) | `V` |
-| `Meta概念` | Concept Breakdown (V if matched) | `V` |
-| `OpenAI概念` | Concept Breakdown (V if matched) | `V` |
-| `Microsoft概念` | Concept Breakdown (V if matched) | `V` |
-| `AMD概念` | Concept Breakdown (V if matched) | `V` |
-| `Apple概念` | Concept Breakdown (V if matched) | `V` |
-| `Oracle概念` | Concept Breakdown (V if matched) | `V` |
+| `nVidia概念` | Concept Breakdown (1 if matched) | `1` |
+| `Google概念` | Concept Breakdown (1 if matched) | `1` |
+| `Amazon概念` | Concept Breakdown (1 if matched) | `1` |
+| `Meta概念` | Concept Breakdown (1 if matched) | `1` |
+| `OpenAI概念` | Concept Breakdown (1 if matched) | `1` |
+| `Microsoft概念` | Concept Breakdown (1 if matched) | `1` |
+| `AMD概念` | Concept Breakdown (1 if matched) | `1` |
+| `Apple概念` | Concept Breakdown (1 if matched) | `1` |
+| `Oracle概念` | Concept Breakdown (1 if matched) | `1` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
