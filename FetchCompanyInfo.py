@@ -537,7 +537,7 @@ def fetch_gemini_concepts(stock_list):
     except Exception as e:
         print(f"Failed to init Gemini Client: {e}")
         return {}
-def fetch_goodinfo_data(driver, stock_id, max_retries=3):
+def fetch_goodinfo_data(driver, stock_id, max_retries=2):
     if driver is None:
         return None, None, None
 
@@ -902,13 +902,23 @@ def main():
         # 2. Fetch Individual Stock Details
         print("Step 2: Fetching Stock Details...")
         total = len(merged)
+        consecutive_failures = 0
         
         for idx, row in merged.iterrows():
+            if consecutive_failures >= 5:
+                print("Too many consecutive failures (IP blocked?). Stopping GoodInfo scrape.")
+                break
+
             stock_id = row["代號"]
             print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
             
             # Fetch Business & Concepts
             mb, cc, mv = fetch_goodinfo_data(driver, stock_id)
+            
+            if mb is None and cc is None and mv is None:
+                consecutive_failures += 1
+            else:
+                consecutive_failures = 0
             
             # Get Group from Map
             gp = group_map.get(str(stock_id))
@@ -920,7 +930,7 @@ def main():
             merged.at[idx, "市值"] = mv
 
             # Delay to be polite/avoid being blocked (longer for CI environments)
-            time.sleep(4)
+            time.sleep(3)
         
         driver.quit()
     else:
