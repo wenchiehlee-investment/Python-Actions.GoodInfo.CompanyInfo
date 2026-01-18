@@ -55,6 +55,7 @@ CONCEPT_KEYWORDS = {
     "AMD概念": ["amd", "超微"],
     "Apple概念": ["apple", "蘋果"],
     "Oracle概念": ["oracle", "甲骨文"],
+    "Micro概念": ["supermicro", "美超微", "super micro"],
 }
 CONCEPT_COLUMNS = list(CONCEPT_KEYWORDS.keys())
 
