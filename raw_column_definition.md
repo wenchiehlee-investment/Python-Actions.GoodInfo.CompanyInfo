@@ -24,5 +24,5 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `AMD概念` | Mark "1" if part of AMD supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Apple概念` | Mark "1" if part of Apple supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Oracle概念` | Mark "1" if part of Oracle supply chain/concept | GoodInfo / Gemini AI Analysis |
-| `Micro概念` | Mark "1" if part of Supermicro supply chain/concept | GoodInfo / Gemini AI Analysis |
+| `Micro概念` | Mark "1" if part of Micron Technology supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `相關集團` | Name of the business group the company belongs to | GoodInfo (Group List mapping) |
