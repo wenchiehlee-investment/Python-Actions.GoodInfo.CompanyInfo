@@ -86,7 +86,8 @@ def add_concept_flag_columns(df):
 
     flags_df = df["相關概念"].apply(build_concept_flags).apply(pd.Series)
     for col in CONCEPT_COLUMNS:
-        df[col] = flags_df[col].fillna(0).astype(int)
+        # Convert 1/0 to 'V'/'' for visual readability
+        df[col] = flags_df[col].apply(lambda x: 'V' if x == 1 else '')
     return df
 
 def get_selenium_driver():
@@ -972,7 +973,6 @@ def main():
         "ETF_00878_權重",
         "ETF_00919_權重",
         "主要業務",
-        "相關概念",
         *CONCEPT_COLUMNS,
         "相關集團",
     ]
