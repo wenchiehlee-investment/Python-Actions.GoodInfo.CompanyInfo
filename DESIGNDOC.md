@@ -13,7 +13,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 3.  **Fetch (ETF):** Query `MoneyDJ` for 0050/0056/00878/00919 constituents and weights.
 4.  **Fetch (GoodInfo):** Use **Selenium** to:
     *   Visit the "Group List" page to map stocks to groups.
-    *   Visit individual stock pages to scrape "Main Business", "Market Cap", and "Concepts".
+    *   Visit individual stock pages to scrape "Main Business", "Market Cap", and "Concepts" (used for concept flags only).
 5.  **Merge:** Consolidate all data into a single DataFrame.
 6.  **Post-Process:** Breakdown "Related Concepts" into individual boolean columns.
 7.  **Output:** `raw_companyinfo.csv`.
@@ -48,7 +48,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 *   **Group Map:** Visits `https://goodinfo.tw/tw/StockList.asp?MARKET_CAT=集團股` first. Iterates *all* group links to build a global `{StockID: GroupName}` map.
 *   **Stock Details:** Visits `https://goodinfo.tw/tw/StockDetail.asp?STOCK_ID={id}`.
     *   **Wait Strategy:** Waits for `<body>` and `<td>` elements to ensure JS rendering.
-    *   **Extraction:** Regex parsing of the rendered HTML source to extract "Main Business", "Related Concepts", and "Market Cap".
+*   **Extraction:** Regex parsing of the rendered HTML source to extract "Main Business", "Related Concepts", and "Market Cap" (the raw `相關概念` text is not written to output).
 
 ### 3.3. Merge Strategy
 *   **Market/Industry:** Coalesced from TWSE > TPEX > Emerging > Public.
@@ -57,9 +57,9 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 
 ### 3.4. Post-Processing (Concept Breakdown)
 *   **Logic:** The script iterates through a predefined list of Tech Giants:
-    *   `["nVidia", "Google", "Amazon", "Meta", "OpenAI", "Microsoft", "AMD", "Apple", "Oracle", "Micron"]`
+    *   `["nVidia", "Google", "Amazon", "Meta", "OpenAI", "Microsoft", "AMD", "Apple", "Oracle", "Micron", "SanDisk"]`
 *   **Action:** Creates a new column for each giant (e.g., `nVidia概念`).
-*   **Value:** If the giant's name appears in the scraped `相關概念` string (case-insensitive), the column is marked with "V", otherwise empty.
+*   **Value:** If the giant's name appears in the scraped `相關概念` string (case-insensitive), the column is marked with "1", otherwise "0".
 
 
 ## 4. GitHub Actions Automation

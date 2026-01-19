@@ -56,6 +56,7 @@ CONCEPT_KEYWORDS = {
     "Apple概念": ["apple", "蘋果"],
     "Oracle概念": ["oracle", "甲骨文"],
     "Micro概念": ["micron", "美光", "micron technology"],
+    "SanDisk概念": ["sandisk", "san disk", "閃迪"],
 }
 CONCEPT_COLUMNS = list(CONCEPT_KEYWORDS.keys())
 
@@ -281,7 +282,7 @@ def fetch_gemini_concepts(stock_list):
         Analyze the following list of companies.
         
         Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-        [Nvidia, Oracle, Google, Amazon, Meta, OpenAI]
+        [Nvidia, Oracle, Google, Amazon, Meta, OpenAI, SanDisk]
         
         Rules:
         1. Only return the names of the Tech Giants from the list above that the company is related to.
@@ -447,7 +448,7 @@ def _process_gemini_batch(client, stock_chunk, max_retries=5):
     Analyze the following list of companies.
 
     Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-    [Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron]
+    [Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk]
 
     Rules:
     1. Only return the names of the Tech Giants from the list above that the company is related to.
@@ -959,6 +960,8 @@ def main():
                     merged.at[idx, "相關概念"] = f"{existing};{concepts}"
 
     merged = add_concept_flag_columns(merged)
+    if "相關概念" in merged.columns:
+        merged = merged.drop(columns=["相關概念"])
 
     # 5) 欄位順序
     col_order = [
