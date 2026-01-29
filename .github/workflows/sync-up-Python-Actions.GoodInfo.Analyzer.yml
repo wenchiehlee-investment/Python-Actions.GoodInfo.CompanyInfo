@@ -1,4 +1,4 @@
-name: Sync
+name: Sync-Python-Actions.GoodInfo.Analyzer
 on:
   workflow_dispatch:
   schedule:
@@ -6,6 +6,8 @@ on:
   push:
      branches:
        - main
+     paths:
+       - raw_companyinfo.csv
 jobs:
   sync-file:
     runs-on: ubuntu-latest
@@ -16,7 +18,7 @@ jobs:
         uses: BetaHuhn/repo-file-sync-action@latest
         with:
           GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_INVESTMENT }}
-          CONFIG_PATH: .github/sync.yml
+          CONFIG_PATH: .github/sync-Python-Actions.GoodInfo.Analyzer.yml
           COMMIT_EACH_FILE: false
           PR_LABELS: "automated-sync"
           SKIP_PR: true

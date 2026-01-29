@@ -1,4 +1,8 @@
-URL: http://raw.githubusercontent.com/wenchiehlee-investment/Python-Actions.GoodInfo.CompanyInfo/refs/heads/main/raw_column_definition.md
+---
+source: https://raw.githubusercontent.com/wenchiehlee-investment/Python-Actions.GoodInfo.CompanyInfo/refs/heads/main/raw_column_definition.md
+destination: https://raw.githubusercontent.com/wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer/refs/heads/main/raw_column_definition.md
+---
+
 # Column Definitions for raw_companyinfo.csv
 
 This table defines the structure and source of data in `raw_companyinfo.csv`.
