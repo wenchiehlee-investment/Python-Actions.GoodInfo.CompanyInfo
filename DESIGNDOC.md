@@ -57,7 +57,7 @@ To enrich a local list of Taiwan Stock IDs (`StockID_TWSE_TPEX.csv`) with offici
 
 ### 3.4. Post-Processing (Concept Breakdown)
 *   **Logic:** The script iterates through a predefined list of Tech Giants:
-    *   `["nVidia", "Google", "Amazon", "Meta", "OpenAI", "Microsoft", "AMD", "Apple", "Oracle", "Micron", "SanDisk", "Qualcomm"]`
+    *   `["nVidia", "Google", "Amazon", "Meta", "OpenAI", "Microsoft", "AMD", "Apple", "Oracle", "Micron", "SanDisk", "Qualcomm", "Lenovo"]`
 *   **Action:** Creates a new column for each giant (e.g., `nVidia概念`).
 *   **Value:** If the giant's name appears in the scraped `相關概念` string (case-insensitive), the column is marked with "1", otherwise "0".
 

@@ -74,6 +74,7 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `Oracle概念` | Concept Breakdown (1 if matched) | `1` |
 | `Micro概念` | Concept Breakdown (1 if matched) | `1` |
 | `Qualcomm概念` | Concept Breakdown (1 if matched) | `1` |
+| `Lenovo概念` | Concept Breakdown (1 if matched) | `1` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
@@ -99,7 +100,7 @@ The script uses **Selenium** with a headless Chrome browser to bypass anti-scrap
 ### Key Technical Details
 *   **Encoding:** TWSE ISIN responses use `big5` encoding. Output CSVs use `utf-8-sig` for Excel compatibility.
 *   **SSL:** TWSE ISIN API requires `verify=False` due to certificate issues.
-*   **Concept Flag System:** `CONCEPT_KEYWORDS` dict in `FetchCompanyInfo.py` maps column names to keyword lists. Binary flags (1/0) are generated for each tech giant (nVidia, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Oracle, Micron, SanDisk, Qualcomm).
+*   **Concept Flag System:** `CONCEPT_KEYWORDS` dict in `FetchCompanyInfo.py` maps column names to keyword lists. Binary flags (1/0) are generated for each tech giant (nVidia, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Oracle, Micron, SanDisk, Qualcomm, Lenovo).
 *   **Rate Limiting:**
     *   GoodInfo scraping has 3-second delays between requests
     *   Gemini API uses exponential backoff (3, 6, 12, 24, 48 seconds) for 503/rate limit errors
