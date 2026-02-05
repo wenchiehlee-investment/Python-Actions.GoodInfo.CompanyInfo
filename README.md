@@ -73,6 +73,7 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `Apple概念` | Concept Breakdown (1 if matched) | `1` |
 | `Oracle概念` | Concept Breakdown (1 if matched) | `1` |
 | `Micro概念` | Concept Breakdown (1 if matched) | `1` |
+| `Qualcomm概念` | Concept Breakdown (1 if matched) | `1` |
 | `相關集團` | **Related Group** (Bulk Mapped from GoodInfo) | `台積電集團` |
 
 ## GoodInfo Scraping
