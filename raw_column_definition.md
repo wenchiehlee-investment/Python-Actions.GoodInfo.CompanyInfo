@@ -32,5 +32,7 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `SanDisk概念` | Mark "1" if part of SanDisk supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Qualcomm概念` | Mark "1" if part of Qualcomm supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Lenovo概念` | Mark "1" if part of Lenovo supply chain/concept | GoodInfo / Gemini AI Analysis |
+| `Dell概念` | Mark "1" if part of Dell supply chain/concept | GoodInfo / Gemini AI Analysis |
+| `HP概念` | Mark "1" if part of HP supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Micro概念` | Mark "1" if part of Micron Technology supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `相關集團` | Name of the business group the company belongs to | GoodInfo (Group List mapping) |
