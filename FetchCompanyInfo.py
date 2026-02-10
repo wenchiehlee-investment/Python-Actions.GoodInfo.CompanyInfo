@@ -761,8 +761,8 @@ def fetch_isin_table(mode: int, market_label: str) -> pd.DataFrame:
     df = df[df["代號名稱"].astype(str).str.match(r"^\d+")].copy()
 
     # 拆代號與名稱
-    df["代號"] = df["代號名稱"].str.extract(r"^(\d+)")
-    df["名稱_官方"] = df["代號名稱"].str.replace(r"^\d+", "", regex=True).str.strip()
+    df["代號"] = df["代號名稱"].str.extract(r"^(\S+)")
+    df["名稱_官方"] = df["代號名稱"].str.replace(r"^\S+", "", regex=True).str.strip()
 
     return df[["代號", "名稱_官方", "市場別", "產業別", "上市日"]]
 
@@ -800,7 +800,7 @@ def main():
     )
     # Filter stocks
     pub_df = pub_df[pub_df["代號名稱"].astype(str).str.match(r"^\d+")].copy()
-    pub_df["代號"] = pub_df["代號名稱"].str.extract(r"^(\d+)")
+    pub_df["代號"] = pub_df["代號名稱"].str.extract(r"^(\S+)")
     pub_df["市場別_PUB"] = "公開發行" # Manually assign
     
     pub = pub_df[["代號", "市場別_PUB", "產業別_PUB"]]
