@@ -4,6 +4,7 @@ destination: https://raw.githubusercontent.com/wenchiehlee-investment/Python-Act
 ---
 
 # Column Definitions for raw_companyinfo.csv
+**No:** 50
 
 This table defines the structure and source of data in `raw_companyinfo.csv`.
 
@@ -20,6 +21,7 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `ETF_00878_權重` | Weight in Cathay MSCI Taiwan ESG Sustainability High Dividend Yield ETF (%) | MoneyDJ constituent data |
 | `ETF_00919_權重` | Weight in Capital Taiwan High Dividend ETF (%) | MoneyDJ constituent data |
 | `主要業務` | Detailed description of the company's main operations | GoodInfo |
+| `TSMC概念` | Mark "1" if part of TSMC supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `nVidia概念` | Mark "1" if part of Nvidia supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Google概念` | Mark "1" if part of Google supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `Amazon概念` | Mark "1" if part of Amazon supply chain/concept | GoodInfo / Gemini AI Analysis |
