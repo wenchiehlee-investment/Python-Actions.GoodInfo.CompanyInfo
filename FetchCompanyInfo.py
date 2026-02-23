@@ -48,6 +48,7 @@ HEADERS = {
 CONCEPT_KEYWORDS = {
     "TSMC概念": ["tsmc", "台積電"],
     "nVidia概念": ["nvidia", "輝達"],
+    "Broadcom概念": ["broadcom", "博通"],
     "Google概念": ["google", "谷歌"],
     "Amazon概念": ["amazon", "亞馬遜"],
     "Meta概念": ["meta", "facebook", "臉書"],
@@ -61,7 +62,8 @@ CONCEPT_KEYWORDS = {
     "Qualcomm概念": ["qualcomm", "高通"],
     "Lenovo概念": ["lenovo", "聯想"],
     "Dell概念": ["dell", "戴爾"],
-    "HP概念": ["hp", "惠普", "hewlett-packard"],
+    "HPQ概念": ["hpq", "hp ", "惠普", "hewlett-packard"],
+    "HPE概念": ["hpe", "hewlett packard enterprise"],
 }
 CONCEPT_COLUMNS = list(CONCEPT_KEYWORDS.keys())
 
@@ -287,7 +289,7 @@ def fetch_gemini_concepts(stock_list):
         Analyze the following list of companies.
         
         Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-        [TSMC, Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk, Qualcomm, Lenovo, Dell, HP]
+        [TSMC, Nvidia, Broadcom, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk, Qualcomm, Lenovo, Dell, HPQ, HPE]
         
         Rules:
         1. Only return the names of the Tech Giants from the list above that the company is related to.
@@ -453,7 +455,7 @@ def _process_gemini_batch(client, stock_chunk, max_retries=5):
     Analyze the following list of companies.
 
     Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-    [TSMC, Nvidia, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk, Qualcomm, Lenovo, Dell, HP]
+    [TSMC, Nvidia, Broadcom, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk, Qualcomm, Lenovo, Dell, HPQ, HPE]
 
     Rules:
     1. Only return the names of the Tech Giants from the list above that the company is related to.

@@ -41,7 +41,7 @@ python FetchCompanyInfo.py
 
 **SSL**: TWSE ISIN API requires `verify=False` due to certificate issues.
 
-**Concept Flag System**: `CONCEPT_KEYWORDS` dict in `FetchCompanyInfo.py` maps column names to keyword lists. The `build_concept_flags()` function parses the `相關概念` field to populate binary flag columns (1/0) for each tech giant (nVidia, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Oracle, Micron, SanDisk, Qualcomm, Lenovo, Dell, HP).
+**Concept Flag System**: `CONCEPT_KEYWORDS` dict in `FetchCompanyInfo.py` maps column names to keyword lists. The `build_concept_flags()` function parses the `相關概念` field to populate binary flag columns (1/0) for each tech giant (nVidia, Broadcom, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Oracle, Micron, SanDisk, Qualcomm, Lenovo, Dell, HPQ, HPE).
 
 **Rate Limiting**:
 - GoodInfo scraping has 3-second delays between requests
