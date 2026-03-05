@@ -48,7 +48,7 @@ python FetchCompanyInfo.py
 - Gemini API uses exponential backoff (3, 6, 12, 24, 48 seconds) for 503/rate limit errors
 - Consecutive GoodInfo failures (5+) triggers early abort to avoid IP blocks
 
-**Environment Variables**: `GOOGLE_API_KEY` required for Gemini concept analysis (optional feature).
+**Environment Variables**: `GEMINI_API_KEY` required for Gemini concept analysis (optional feature).
 
 ## GitHub Actions
 

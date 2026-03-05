@@ -31,7 +31,7 @@ pip install pandas requests lxml urllib3 html5lib selenium webdriver-manager goo
 *(Note: `google-chrome-stable` must be installed on the system for Selenium)*
 
 **Environment Variables:**
-*   `GOOGLE_API_KEY`: Required for Gemini AI concept analysis (optional feature)
+*   `GEMINI_API_KEY`: Required for Gemini AI concept analysis (optional feature)
 
 ### Usage
 
