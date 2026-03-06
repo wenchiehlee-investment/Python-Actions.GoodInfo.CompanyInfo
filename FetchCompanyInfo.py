@@ -163,10 +163,21 @@ def get_goodinfo_group_map(driver):
             print(f"  [{i+1}/{total_groups}] Mapping Group: {group_name}")
             try:
                 driver.get(href)
-                time.sleep(1.5) # Short wait
-                
-                # Restrict search to the main stock list table to avoid sidebar links
+                # Wait for table content to load (replaces bare sleep)
+                try:
+                    WebDriverWait(driver, 15).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "td"))
+                    )
+                except:
+                    time.sleep(2)
+
+                # Try specific table first, fall back to all stock links on page
                 stock_links = driver.find_elements(By.XPATH, "//table[@id='tblStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                if not stock_links:
+                    stock_links = driver.find_elements(By.XPATH, "//div[@id='divStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                if not stock_links:
+                    # Broadest fallback — may include sidebar links, deduplication handles it
+                    stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
                 
                 for sl in stock_links:
                     shref = sl.get_attribute('href')
@@ -416,11 +427,21 @@ def get_goodinfo_group_map(driver):
             print(f"  [{i+1}/{total_groups}] Mapping Group: {group_name}")
             try:
                 driver.get(href)
-                time.sleep(1.5) # Short wait
-                
-                # Restrict search to the main stock list table to avoid sidebar links (e.g. Recently Viewed)
-                # Table ID is usually 'tblStockList'
+                # Wait for table content to load (replaces bare sleep)
+                try:
+                    WebDriverWait(driver, 15).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "td"))
+                    )
+                except:
+                    time.sleep(2)
+
+                # Try specific table first, fall back to all stock links on page
                 stock_links = driver.find_elements(By.XPATH, "//table[@id='tblStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                if not stock_links:
+                    stock_links = driver.find_elements(By.XPATH, "//div[@id='divStockList']//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
+                if not stock_links:
+                    # Broadest fallback — may include sidebar links, deduplication handles it
+                    stock_links = driver.find_elements(By.XPATH, "//a[contains(@href, 'StockDetail.asp?STOCK_ID=')]")
                 
                 for sl in stock_links:
                     shref = sl.get_attribute('href')
