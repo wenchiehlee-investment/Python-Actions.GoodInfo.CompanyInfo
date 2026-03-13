@@ -23,12 +23,12 @@ try:
 except ImportError:
     SELENIUM_AVAILABLE = False
 
-# Try to import Google GenAI
+# Try to import LLM client
 try:
-    from google import genai
-    GENAI_AVAILABLE = True
+    from llm import LLMClient
+    LLM_AVAILABLE = True
 except ImportError:
-    GENAI_AVAILABLE = False
+    LLM_AVAILABLE = False
 
 # Suppress only the single warning from urllib3 needed.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -268,74 +268,6 @@ def fetch_goodinfo_data(driver, stock_id):
         print(f"Error fetching GoodInfo for {stock_id}: {e}")
         return None, None, None
 
-def fetch_gemini_concepts(stock_list):
-    """
-    Uses Gemini API to identify concept stocks for specific tech giants.
-    stock_list: list of tuples (id, name)
-    Returns: dict { 'StockID': 'Concepts' }
-    """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key or not GENAI_AVAILABLE:
-        print("Skipping Gemini analysis (API Key missing or SDK not found).")
-        return {}
-
-    print("Initializing Gemini Client...")
-    client = genai.Client(api_key=api_key)
-    
-    # Process in chunks to avoid context limits
-    chunk_size = 40
-    results = {}
-    
-    total_chunks = (len(stock_list) + chunk_size - 1) // chunk_size
-    
-    for i in range(0, len(stock_list), chunk_size):
-        chunk = stock_list[i:i + chunk_size]
-        print(f"  Sending chunk {i//chunk_size + 1}/{total_chunks} to Gemini...")
-        
-        # Format list for prompt
-        stock_text = "\n".join([f"{s[0]} {s[1]}" for s in chunk])
-        
-        prompt = f"""
-        You are a financial analyst specializing in Taiwan tech stocks.
-        Analyze the following list of companies.
-        
-        Task: Identify if each company is part of the supply chain or a "concept stock" for these specific Tech Giants:
-        [TSMC, Nvidia, Broadcom, Oracle, Google, Amazon, Meta, OpenAI, Microsoft, AMD, Apple, Micron, SanDisk, Qualcomm, Lenovo, Dell, HPQ, HPE]
-        
-        Rules:
-        1. Only return the names of the Tech Giants from the list above that the company is related to.
-        2. If related to multiple, separate with commas (e.g., "Nvidia, Google").
-        3. If not related to any of these specific giants, return "None".
-        4. Output strictly in CSV format: StockID, Matched_Concepts
-        5. Do not output markdown code blocks.
-        
-        Stocks:
-        {stock_text}
-        """
-        
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
-            
-            # Parse CSV response
-            lines = response.text.strip().split('\n')
-            for line in lines:
-                parts = line.split(',', 1)
-                if len(parts) == 2:
-                    sid = parts[0].strip()
-                    concepts = parts[1].strip()
-                    if concepts.lower() != "none" and "stockid" not in sid.lower():
-                        results[sid] = concepts
-            
-            time.sleep(2) # Rate limit nice-ness
-            
-        except Exception as e:
-            print(f"  Gemini Error: {e}")
-            
-    return results
-
 # ... [fetch_isin_table function] ...
 
 def main():
@@ -465,8 +397,8 @@ def get_goodinfo_group_map(driver):
     print(f"Mapped {len(group_map)} stocks to groups.")
     return group_map
 
-def _process_gemini_batch(client, stock_chunk, max_retries=5):
-    """Helper to process a single batch of stocks with Gemini."""
+def _process_llm_batch(client, stock_chunk, max_retries=5):
+    """Helper to process a single batch of stocks with LLM client."""
     results = {}
     # Format list for prompt
     stock_text = "\n".join([f"{s[0]} {s[1]}" for s in stock_chunk])
@@ -491,13 +423,8 @@ def _process_gemini_batch(client, stock_chunk, max_retries=5):
 
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
+            text = client.generate(prompt)
 
-            # Parse CSV response
-            text = response.text
             if text.startswith("```"): # Cleanup markdown
                 text = text.strip("`").replace("csv\n", "", 1)
 
@@ -523,49 +450,48 @@ def _process_gemini_batch(client, stock_chunk, max_retries=5):
             if '503' in error_str or 'overloaded' in error_str.lower() or 'rate' in error_str.lower():
                 if attempt < max_retries - 1:
                     wait_time = (2 ** attempt) * 3  # Exponential backoff: 3, 6, 12, 24, 48 seconds
-                    print(f"  Gemini API overloaded/rate limited, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                    print(f"  LLM API overloaded/rate limited, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
                     time.sleep(wait_time)
                     continue
                 else:
-                    print(f"  Gemini API Error after {max_retries} attempts: {e}")
+                    print(f"  LLM API Error after {max_retries} attempts: {e}")
             else:
                 # Non-retryable error
-                print(f"  Gemini API Error: {e}")
+                print(f"  LLM API Error: {e}")
                 break
 
     return results
 
-def fetch_gemini_concepts(stock_list):
+def fetch_llm_concepts(stock_list):
     """
-    Uses Gemini API to identify concept stocks for specific tech giants.
+    Uses LLM client to identify concept stocks for specific tech giants.
     stock_list: list of tuples (id, name)
     Returns: dict { 'StockID': 'Concepts' }
     """
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key or not GENAI_AVAILABLE:
-        print("Skipping Gemini analysis (API Key missing or SDK not found).")
+    if not LLM_AVAILABLE:
+        print("Skipping LLM analysis (llm SDK not found).")
         return {}
 
-    print("Initializing Gemini Client...")
+    print("Initializing LLM Client...")
     try:
-        client = genai.Client(api_key=api_key)
-        
+        client = LLMClient(providers=["gemini"], model="gemini-2.5-flash", app_name="CompanyInfo")
+
         # Process in chunks to avoid context limits
         chunk_size = 40
         all_results = {}
-        
+
         total_chunks = (len(stock_list) + chunk_size - 1) // chunk_size
-        
+
         for i in range(0, len(stock_list), chunk_size):
             chunk = stock_list[i:i + chunk_size]
-            print(f"  Sending chunk {i//chunk_size + 1}/{total_chunks} to Gemini...")
-            
-            batch_results = _process_gemini_batch(client, chunk)
+            print(f"  Sending chunk {i//chunk_size + 1}/{total_chunks} to LLM...")
+
+            batch_results = _process_llm_batch(client, chunk)
             all_results.update(batch_results)
-                
+
         return all_results
     except Exception as e:
-        print(f"Failed to init Gemini Client: {e}")
+        print(f"Failed to init LLM Client: {e}")
         return {}
 def fetch_goodinfo_data(driver, stock_id, max_retries=2):
     if driver is None:
@@ -966,13 +892,13 @@ def main():
     else:
         print("Skipping GoodInfo fetch (Selenium not available).")
 
-    # === Fetch Gemini Concepts ===
+    # === Fetch LLM Concepts ===
     # Prepare list [(id, name)]
-    stock_list_for_gemini = list(zip(merged["代號"], merged["名稱"]))
-    gemini_results = fetch_gemini_concepts(stock_list_for_gemini)
-    
+    stock_list_for_llm = list(zip(merged["代號"], merged["名稱"]))
+    gemini_results = fetch_llm_concepts(stock_list_for_llm)
+
     if gemini_results:
-        print(f"Merging {len(gemini_results)} Gemini concepts...")
+        print(f"Merging {len(gemini_results)} LLM concepts...")
         for sid, concepts in gemini_results.items():
             # Find the row
             mask = merged["代號"] == sid
