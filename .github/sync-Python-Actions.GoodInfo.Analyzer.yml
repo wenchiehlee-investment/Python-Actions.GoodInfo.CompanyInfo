@@ -10,4 +10,4 @@ group:
       - source: raw_companyinfo.csv
         dest:   raw_companyinfo.csv
     repos: |
-        wenchiehlee/ConceptStocks
+        wenchiehlee-investment/ConceptStocks
