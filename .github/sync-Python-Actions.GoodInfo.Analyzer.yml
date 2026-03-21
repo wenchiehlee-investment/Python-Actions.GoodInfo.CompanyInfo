@@ -7,8 +7,7 @@ group:
     repos: |
         wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer
   - files:
-      # Concept stock mapping (triggers sync job in ConceptStocks)
       - source: raw_companyinfo.csv
         dest:   raw_companyinfo.csv
     repos: |
-        wenchiehlee-investment/ConceptStocks
+        wenchiehlee/ConceptStocks
