@@ -1,4 +1,5 @@
-name: Sync-Python-Actions.GoodInfo.Analyzer
+name: Sync to Analyzer
+
 on:
   workflow_dispatch:
   schedule:
@@ -8,6 +9,11 @@ on:
        - main
      paths:
        - raw_companyinfo.csv
+
+concurrency:
+  group: sync-analyzer
+  cancel-in-progress: false
+
 jobs:
   sync-file:
     runs-on: ubuntu-latest

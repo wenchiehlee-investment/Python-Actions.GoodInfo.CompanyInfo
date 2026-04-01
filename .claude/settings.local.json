@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python FetchCompanyInfo.py:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd: ETF 00878 and 00919 weight columns, project initialization files\n\n- Add fetch and mapping for ETF 00878 \\(國泰永續高股息\\) and 00919 \\(群益台灣精選高息\\) weights\n- Update README.md with new ETF columns in output format documentation\n- Add comprehensive .gitignore for Python projects with proper .env protection\n- Add requirements.txt with all project dependencies\n- All four ETFs \\(0050, 0056, 00878, 00919\\) now dynamically fetched from MoneyDJ\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push)",
+      "Bash(git pull:*)",
+      "Bash(git commit:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git -C \"C:\\\\Users\\\\WJLEE\\\\SynologyDrive\\\\NAS\\\\github.com\\\\Python-Actions.GoodInfo.CompanyInfo\" status)",
+      "Bash(gh repo:*)",
+      "Bash(gh secret:*)"
+    ]
+  }
+}
