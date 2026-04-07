@@ -9,6 +9,7 @@ on:
        - main
      paths:
        - raw_companyinfo.csv
+       - raw_column_definition.md
 
 concurrency:
   group: sync-analyzer
@@ -24,7 +25,7 @@ jobs:
         uses: BetaHuhn/repo-file-sync-action@latest
         with:
           GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_INVESTMENT }}
-          CONFIG_PATH: .github/sync-Python-Actions.GoodInfo.Analyzer.yml
+          CONFIG_PATH: .github/sync-to-Analyzer.yml
           COMMIT_EACH_FILE: false
           PR_LABELS: "automated-sync"
           SKIP_PR: true

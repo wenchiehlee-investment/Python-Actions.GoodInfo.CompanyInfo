@@ -4,6 +4,9 @@ group:
       # No. 50: Company info
       - source: raw_companyinfo.csv
         dest:   data/stage1_raw/raw_companyinfo.csv
+      # No. 50: Metadata definition
+      - source: raw_column_definition.md
+        dest:   definitions/raw_column_definition_CompanyInfo.md
     repos: |
         wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer
   - files:
