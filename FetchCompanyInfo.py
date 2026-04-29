@@ -4,6 +4,7 @@ import urllib3
 import re
 import time
 import os
+from datetime import datetime
 from io import StringIO
 from dotenv import load_dotenv
 
@@ -948,6 +949,9 @@ def main():
     merged = merged[col_order]
 
     # 6) 存檔
+    process_timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    merged["download_timestamp"] = process_timestamp
+    merged["process_timestamp"] = process_timestamp
     merged.to_csv(OUTPUT_CSV, index=False, encoding="utf-8-sig")
 
     print("\n=== 已完成 ===")
