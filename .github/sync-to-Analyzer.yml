@@ -14,8 +14,3 @@ group:
         dest:   raw_companyinfo.csv
     repos: |
         wenchiehlee-investment/ConceptStocks
-  - files:
-      - source: raw_companyinfo.csv
-        dest:   raw_companyinfo.csv
-    repos: |
-        wenchiehlee-money/InvestorConference
