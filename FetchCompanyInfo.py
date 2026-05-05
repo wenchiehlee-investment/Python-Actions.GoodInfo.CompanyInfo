@@ -58,7 +58,7 @@ CONCEPT_KEYWORDS = {
     "AMD概念": ["amd", "超微"],
     "Apple概念": ["apple", "蘋果"],
     "Oracle概念": ["oracle", "甲骨文"],
-    "Micro概念": ["micron", "美光", "micron technology"],
+    "Micron概念": ["micron", "美光", "micron technology"],
     "SanDisk概念": ["sandisk", "san disk", "閃迪"],
     "Qualcomm概念": ["qualcomm", "高通"],
     "Lenovo概念": ["lenovo", "聯想"],
@@ -424,7 +424,8 @@ def _process_llm_batch(client, stock_chunk, max_retries=5):
 
     for attempt in range(max_retries):
         try:
-            text = client.generate(prompt)
+            # 啟用智慧路由：先嘗試透過伺服器端 (Codex/Gemini-CLI) 產生草稿並評審，若已晉升則直接回傳
+            text = client.generate_smart("CompanyInfo_ConceptStock", prompt, draft_provider="codex")
 
             if text.startswith("```"): # Cleanup markdown
                 text = text.strip("`").replace("csv\n", "", 1)
@@ -475,7 +476,8 @@ def fetch_llm_concepts(stock_list):
 
     print("Initializing LLM Client...")
     try:
-        client = LLMClient(providers=["gemini"], model="gemini-2.5-flash", app_name="CompanyInfo")
+        # 使用預設 Provider 鏈 (codex -> gemini -> mlx)
+        client = LLMClient(app_name="CompanyInfo")
 
         # Process in chunks to avoid context limits
         chunk_size = 40

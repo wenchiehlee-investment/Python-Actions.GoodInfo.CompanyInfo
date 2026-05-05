@@ -38,7 +38,7 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `Dell概念` | Mark "1" if part of Dell supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `HPQ概念` | Mark "1" if part of HPQ supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `HPE概念` | Mark "1" if part of HPE supply chain/concept | GoodInfo / Gemini AI Analysis |
-| `Micro概念` | Mark "1" if part of Micron Technology supply chain/concept | GoodInfo / Gemini AI Analysis |
+| `Micron概念` | Mark "1" if part of Micron Technology supply chain/concept | GoodInfo / Gemini AI Analysis |
 | `相關集團` | Name of the business group the company belongs to | GoodInfo (Group List mapping) |
 | `download_timestamp` | Source data retrieval timestamp | System generated (UTC) |
 | `process_timestamp` | CSV generation timestamp | System generated (UTC) |

@@ -8,9 +8,14 @@ group:
       - source: raw_column_definition.md
         dest:   definitions/raw_column_definition_CompanyInfo.md
     repos: |
-        wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer
+      wenchiehlee-investment/Python-Actions.GoodInfo.Analyzer
   - files:
       - source: raw_companyinfo.csv
         dest:   raw_companyinfo.csv
     repos: |
-        wenchiehlee-investment/ConceptStocks
+      wenchiehlee-investment/ConceptStocks
+  - files:
+      - source: raw_companyinfo.csv
+        dest:   raw_companyinfo.csv
+    repos: |
+      wenchiehlee-money/InvestorConference

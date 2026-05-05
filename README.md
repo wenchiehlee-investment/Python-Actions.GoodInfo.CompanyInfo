@@ -73,7 +73,7 @@ The script generates **`raw_companyinfo.csv`** containing:
 | `AMD概念` | Concept Breakdown (1 if matched) | `1` |
 | `Apple概念` | Concept Breakdown (1 if matched) | `1` |
 | `Oracle概念` | Concept Breakdown (1 if matched) | `1` |
-| `Micro概念` | Concept Breakdown (1 if matched) | `1` |
+| `Micron概念` | Concept Breakdown (1 if matched) | `1` |
 | `Qualcomm概念` | Concept Breakdown (1 if matched) | `1` |
 | `Lenovo概念` | Concept Breakdown (1 if matched) | `1` |
 | `Dell概念` | Concept Breakdown (1 if matched) | `1` |
