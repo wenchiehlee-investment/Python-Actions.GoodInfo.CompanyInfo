@@ -67,6 +67,7 @@ CONCEPT_KEYWORDS = {
     "HPE概念": ["hpe", "hewlett packard enterprise"],
     "Intel概念": ["intel", "英特爾"],
     "ASML概念": ["asml", "艾司摩爾"],
+    "ARM概念": ["arm holdings", "安謀"],
 }
 CONCEPT_COLUMNS = list(CONCEPT_KEYWORDS.keys())
 
