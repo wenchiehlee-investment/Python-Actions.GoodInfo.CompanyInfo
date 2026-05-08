@@ -33,6 +33,7 @@ jobs:
           SKIP_PR: true
 
       - name: Sync raw_companyinfo.csv to InvestorConference
+        continue-on-error: true
         uses: BetaHuhn/repo-file-sync-action@latest
         with:
           GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_MONEY }}
