@@ -853,19 +853,30 @@ def main():
     merged["相關概念"] = None
     merged["相關集團"] = None
     merged["市值"] = None
-    
+
+    # === Load previous market cap values as fallback ===
+    prev_market_cap = {}
+    if os.path.exists(OUTPUT_CSV):
+        try:
+            prev_df = pd.read_csv(OUTPUT_CSV, dtype={"代號": str}, encoding="utf-8-sig")
+            if "市值" in prev_df.columns:
+                prev_market_cap = prev_df.set_index("代號")["市值"].dropna().to_dict()
+                print(f"Loaded {len(prev_market_cap)} previous market cap values as fallback.")
+        except Exception as e:
+            print(f"Warning: Could not load previous market cap values: {e}")
+
     # === Fetch GoodInfo Data (Selenium) ===
     driver = get_selenium_driver()
     if driver:
         # 1. Fetch Group Map (Bulk)
         print("Step 1: Fetching Group Map...")
         group_map = get_goodinfo_group_map(driver)
-        
+
         # 2. Fetch Individual Stock Details
         print("Step 2: Fetching Stock Details...")
         total = len(merged)
         consecutive_failures = 0
-        
+
         for idx, row in merged.iterrows():
             if consecutive_failures >= 5:
                 print("Too many consecutive failures (IP blocked?). Stopping GoodInfo scrape.")
@@ -873,30 +884,41 @@ def main():
 
             stock_id = row["代號"]
             print(f"[{idx+1}/{total}] Fetching GoodInfo for {stock_id} {row['名稱']}...")
-            
+
             # Fetch Business & Concepts
             mb, cc, mv = fetch_goodinfo_data(driver, stock_id)
-            
+
             if mb is None and cc is None and mv is None:
                 consecutive_failures += 1
             else:
                 consecutive_failures = 0
-            
+
             # Get Group from Map
             gp = group_map.get(str(stock_id))
-            
+
             # Update DataFrame directly
             merged.at[idx, "主要業務"] = mb
             merged.at[idx, "相關概念"] = cc
             merged.at[idx, "相關集團"] = gp
-            merged.at[idx, "市值"] = mv
+            # Fall back to previous value if scrape returned None
+            merged.at[idx, "市值"] = mv if mv is not None else prev_market_cap.get(str(stock_id))
 
             # Delay to be polite/avoid being blocked (longer for CI environments)
             time.sleep(3)
-        
+
         driver.quit()
     else:
-        print("Skipping GoodInfo fetch (Selenium not available).")
+        print("Skipping GoodInfo fetch (Selenium not available) — using previous market cap values.")
+
+    # Apply fallback for any remaining None market cap values
+    for idx, row in merged.iterrows():
+        if pd.isna(row["市值"]) or row["市值"] is None:
+            fallback = prev_market_cap.get(str(row["代號"]))
+            if fallback:
+                merged.at[idx, "市值"] = fallback
+
+    none_count = merged["市值"].isna().sum()
+    print(f"Market cap coverage: {len(merged) - none_count}/{len(merged)} stocks have 市值 data.")
 
     # === Fetch LLM Concepts ===
     # Prepare list [(id, name)]
