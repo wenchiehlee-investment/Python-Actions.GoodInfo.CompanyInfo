@@ -1,0 +1,6 @@
+group:
+  - files:
+      - source: raw_companyinfo.csv
+        dest:   觀察清單.csv
+    repos: |
+      wenchiehlee/Selenium-Actions.Auction
