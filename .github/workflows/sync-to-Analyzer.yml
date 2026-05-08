@@ -40,3 +40,12 @@ jobs:
           COMMIT_EACH_FILE: false
           PR_LABELS: "automated-sync"
           SKIP_PR: true
+
+      - name: Sync raw_companyinfo.csv to Selenium-Actions.Auction
+        uses: BetaHuhn/repo-file-sync-action@latest
+        with:
+          GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE }}
+          CONFIG_PATH: .github/sync-to-Auction.yml
+          COMMIT_EACH_FILE: false
+          PR_LABELS: "automated-sync"
+          SKIP_PR: true
