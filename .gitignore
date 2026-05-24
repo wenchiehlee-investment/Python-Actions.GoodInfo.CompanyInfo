@@ -32,3 +32,6 @@ StockID_TWSE_TPEX_官方產業精簡版.csv
 # Temporary files
 *.tmp
 *.log
+
+.env*
+.claude/
