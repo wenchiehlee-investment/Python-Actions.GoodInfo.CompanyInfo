@@ -9,8 +9,8 @@
 
 ## Build, Test, and Development Commands
 - `pip install -r requirements.txt` installs Python dependencies.
-- `python Get觀察名單.py` refreshes watchlist CSVs from the remote source.
-- `python FetchCompanyInfo.py` runs the full enrichment pipeline and writes `raw_companyinfo.csv`.
+- `python skills/skill-goodinfo-fetch/kernel/Get觀察名單.py` refreshes watchlist CSVs from the remote source.
+- `python skills/skill-goodinfo-fetch/kernel/FetchCompanyInfo.py` runs the full enrichment pipeline and writes `raw_companyinfo.csv`.
 - Selenium requires a local Chrome install (the script uses headless Chrome via `webdriver-manager`).
 
 ## Coding Style & Naming Conventions

@@ -31,13 +31,13 @@ pip install pandas requests lxml
 1.  **Update Watchlists:**
     First, download the latest stock lists to ensure you have the most current `StockID_TWSE_TPEX.csv`.
     ```bash
-    python Get觀察名單.py
+    python skills/skill-goodinfo-fetch/kernel/Get觀察名單.py
     ```
 
 2.  **Fetch and Enrich Data:**
     Run the main script to fetch official data and generate the final report.
     ```bash
-    python FetchCompanyInfo.py
+    python skills/skill-goodinfo-fetch/kernel/FetchCompanyInfo.py
     ```
 
 ### Output

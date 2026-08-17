@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_INVESTMENT1 }}
 
@@ -38,7 +38,7 @@ jobs:
           sudo apt-get install -y google-chrome-stable
 
       - name: Fetch Stock Lists
-        run: python "Get觀察名單.py"
+        run: python "skills/skill-goodinfo-fetch/kernel/Get觀察名單.py"
 
       - name: Run FetchCompanyInfo
         env:
@@ -57,7 +57,7 @@ jobs:
           CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
           LLM_APP_NAME: CompanyInfo
-        run: python FetchCompanyInfo.py
+        run: python skills/skill-goodinfo-fetch/kernel/FetchCompanyInfo.py
 
       - name: Commit and push changes
         run: |

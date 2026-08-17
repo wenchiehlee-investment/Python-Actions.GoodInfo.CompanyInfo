@@ -18,10 +18,10 @@ Taiwan stock market data automation tool that fetches and consolidates company i
 pip install pandas requests lxml urllib3 html5lib selenium webdriver-manager google-genai python-dotenv
 
 # Download latest stock watchlists from GitHub
-python Get觀察名單.py
+python skills/skill-goodinfo-fetch/kernel/Get觀察名單.py
 
 # Fetch and enrich company data (main script)
-python FetchCompanyInfo.py
+python skills/skill-goodinfo-fetch/kernel/FetchCompanyInfo.py
 ```
 
 ## Architecture
