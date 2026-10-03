@@ -1,0 +1,23 @@
+[project]
+name = "python-actions-goodinfo-companyinfo"
+version = "0.1.0"
+description = "Fetch and enrich Taiwan company information"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "requests",
+    "lxml",
+    "html5lib",
+    "urllib3",
+    "selenium",
+    "webdriver-manager",
+    "python-dotenv",
+    "google-generativeai",
+    "llm",
+]
+
+[tool.uv.sources]
+llm = { git = "https://github.com/wenchiehlee/llm.git" }
+
+[tool.uv]
+package = false
