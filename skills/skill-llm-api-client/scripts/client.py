@@ -12,7 +12,7 @@ from .analytics.amplitude import LLMCallTracker, configure as amplitude_configur
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_CHAIN = ["codex", "gemini", "mlx"]  # 優先順序：codex → gemini → mlx(本機)
+_DEFAULT_CHAIN = ["gemini", "codex", "mlx"]  # 優先順序：gemini → codex → mlx(本機)
 MAX_PROMPT_LENGTH = 50_000
 
 
@@ -55,7 +55,7 @@ class LLMClient:
     使用方式：
         from llm import LLMClient
 
-        # 自動偵測 provider（codex → gemini）
+        # 自動偵測 provider（gemini → codex）
         client = LLMClient()
 
         # 指定 provider
@@ -134,16 +134,16 @@ class LLMClient:
                         model=draft_model, json_mode=json_mode, max_tokens=max_tokens
                     )
                     self.last_provider = getattr(codex_p, "last_provider_used", "llm-cli")
-
+                    
                     # 紀錄 Server-side 執行 (透過一個空呼叫 tracker 或在 generate 內處理)
                     # 這裡我們模擬一次成功的 generate 呼叫來送出 Amplitude 事件
                     with LLMCallTracker(
-                        self.last_provider, "", prompt,
+                        self.last_provider, "", prompt, 
                         routing_task=task_name, draft_provider=draft_provider,
                         smart_route_status="server_side_executed"
                     ) as tracker:
                         tracker.result = result
-
+                    
                     return result
             except Exception as e:
                 logger.warning("SmartRoute [%s] Server-side 失敗: %s", task_name, e)
@@ -196,7 +196,7 @@ class LLMClient:
         providers = self._resolve_providers(strong_p_name, judge_model)
         judge_response = ""
         last_exc = None
-
+        
         for p in providers:
             try:
                 # 評審過程不帶 status，這只是一個內部的輔助呼叫
@@ -212,7 +212,7 @@ class LLMClient:
             except Exception as e:
                 last_exc = e
                 continue
-
+        
         if not judge_response and last_exc:
             logger.error("SmartRoute [%s] 評審過程失敗: %s", task_name, last_exc)
             return draft_result
