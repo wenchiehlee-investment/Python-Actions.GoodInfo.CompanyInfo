@@ -1,0 +1,7 @@
+#.github/sync-to-ConceptStocks.yml
+group:
+  - files:
+      - source: raw_companyinfo.csv
+        dest:   raw_companyinfo.csv
+    repos: |
+      wenchiehlee-investment/ConceptStocks

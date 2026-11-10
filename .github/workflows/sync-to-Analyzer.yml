@@ -9,6 +9,7 @@ on:
        - main
      paths:
        - raw_companyinfo.csv
+       - raw_column_definition_CompanyInfo.md
        - raw_column_definition.md
 
 concurrency:
@@ -23,11 +24,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync raw_companyinfo.csv
+      - name: Sync raw_companyinfo.csv to Analyzer
         uses: BetaHuhn/repo-file-sync-action@latest
         with:
           GH_PAT: ${{ secrets.REPO_FILE_SYNC_ZHONGZHENG782_INVESTMENT }}
           CONFIG_PATH: .github/sync-to-Analyzer.yml
+          COMMIT_EACH_FILE: false
+          PR_LABELS: "automated-sync"
+          SKIP_PR: true
+
+      - name: Sync raw_companyinfo.csv to ConceptStocks
+        continue-on-error: true
+        uses: BetaHuhn/repo-file-sync-action@latest
+        with:
+          GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_INVESTMENT1 || secrets.REPO_FILE_SYNC_ZHONGZHENG782_INVESTMENT }}
+          CONFIG_PATH: .github/sync-to-ConceptStocks.yml
           COMMIT_EACH_FILE: false
           PR_LABELS: "automated-sync"
           SKIP_PR: true
@@ -43,6 +54,7 @@ jobs:
           SKIP_PR: true
 
       - name: Sync raw_companyinfo.csv to Selenium-Actions.Auction
+        continue-on-error: true
         uses: BetaHuhn/repo-file-sync-action@latest
         with:
           GH_PAT: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE }}
