@@ -42,3 +42,4 @@ This table defines the structure and source of data in `raw_companyinfo.csv`.
 | `相關集團` | Name of the business group the company belongs to | GoodInfo (Group List mapping) |
 | `download_timestamp` | Source data retrieval timestamp | System generated (UTC) |
 | `process_timestamp` | CSV generation timestamp | System generated (UTC) |
+
