@@ -14,6 +14,8 @@ dependencies = [
     "python-dotenv",
     "google-generativeai",
     "llm",
+    "certifi>=2026.10.18",
+    "pyasn1>=0.6.5",
 ]
 
 [tool.uv.sources]
