@@ -19,7 +19,7 @@ jobs:
           token: ${{ secrets.REPO_FILE_SYNC_WENCHIEHLEE_INVESTMENT1 }}
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
